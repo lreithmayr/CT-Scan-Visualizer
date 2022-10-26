@@ -1,12 +1,11 @@
-#ifndef A2_WIDGET_H_
-#define A2_WIDGET_H_
+#pragma once
 
-#include <QMessageBox>
-#include <QWidget>
 #include <ui_widget.h>
+
 #include <QFile>
 #include <QFileDialog>
-
+#include <QMessageBox>
+#include <QWidget>
 #include <iostream>
 
 QT_BEGIN_NAMESPACE
@@ -16,14 +15,15 @@ class Widget;
 QT_END_NAMESPACE
 
 class Widget : public QWidget {
- Q_OBJECT
+  Q_OBJECT
 
  public:
   explicit Widget(QWidget *parent = nullptr);
   ~Widget() override;
 
  private:
-  static int WindowInputValue(const int &HU_value, const int &center, const int &window_size);
+  static int WindowInputValue(const int &HU_value, const int &center,
+                              const int &window_size);
   void UpdateSliceView();
 
  private:
@@ -36,5 +36,3 @@ class Widget : public QWidget {
   void UpdateWindowingCenter(const int &val);
   void UpdateWindowingWindowSize(const int &val);
 };
-
-#endif //A2_WIDGET_H_
