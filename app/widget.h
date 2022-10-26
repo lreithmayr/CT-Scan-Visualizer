@@ -24,6 +24,7 @@ class Widget : public QWidget {
 
  private:
   static int WindowInputValue(const int &HU_value, const int &center, const int &window_size);
+  void UpdateSliceView();
 
  private:
   Ui::Widget *ui;
@@ -32,6 +33,8 @@ class Widget : public QWidget {
 
  private slots:
   void LoadImage();
+  void UpdateWindowingCenter(const int &val);
+  void UpdateWindowingWindowSize(const int &val);
 };
 
 #endif //A2_WIDGET_H_

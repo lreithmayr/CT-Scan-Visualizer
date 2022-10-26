@@ -11,6 +11,11 @@ Widget::Widget(QWidget *parent) :
   m_img.fill(qRgb(0, 0, 0));
 
   connect(ui->pushButton_loadImage, SIGNAL(clicked()), this, SLOT(LoadImage()));
+  connect(ui->horizontalSlider_center, SIGNAL(valueChanged(int)), this, SLOT(UpdateWindowingCenter(int)));
+  connect(ui->horizontalSlider_windowSize, SIGNAL(valueChanged(int)), this, SLOT(UpdateWindowingWindowSize(int)));
+
+  ui->horizontalSlider_center->setValue(0);
+  ui->horizontalSlider_windowSize->setValue(1200);
 }
 
 Widget::~Widget() {
@@ -33,6 +38,17 @@ int Widget::WindowInputValue(const int &input_value, const int &center, const in
   }
 }
 
+void Widget::UpdateSliceView() {
+  for (int y = 0; y < m_img.height(); ++y) {
+    for (int x = 0; x < m_img.width(); ++x) {
+      int raw_value = m_imageData[x + (y * 512)];
+      int windowed_value = WindowInputValue(raw_value, ui->horizontalSlider_center->value(), ui->horizontalSlider_windowSize->value());
+      m_img.setPixel(x, y, qRgb(windowed_value, windowed_value, windowed_value));
+    }
+  }
+  ui->label_imgArea->setPixmap(QPixmap::fromImage(m_img));
+}
+
 // Slots
 
 void Widget::LoadImage() {
@@ -44,16 +60,18 @@ void Widget::LoadImage() {
 	return;
   }
 
-  [[maybe_unused]] size_t num_of_bytes_read = img_file.read(reinterpret_cast<char *>(m_imageData), 512 * 512 * sizeof(int16_t));
+  img_file.read(reinterpret_cast<char *>(m_imageData), 512 * 512 * sizeof(int16_t));
   img_file.close();
 
-  for (int y = 0; y < m_img.height(); ++y) {
-	for (int x = 0; x < m_img.width(); ++x) {
-	  int raw_value = m_imageData[x + (y * 512)];
-	  int windowed_value = WindowInputValue(raw_value, 600, 1200);
-	  m_img.setPixel(x, y, qRgb(windowed_value, windowed_value, windowed_value));
-	}
-  }
+  UpdateSliceView();
+}
 
-  ui->label_imgArea->setPixmap(QPixmap::fromImage(m_img));
+void Widget::UpdateWindowingCenter(const int &val) {
+    ui->label_sliderCenter->setText("Center: " + QString::number(val));
+    UpdateSliceView();
+}
+
+void Widget::UpdateWindowingWindowSize(const int &val) {
+    ui->label_sliderWSize->setText("Window Size: " + QString::number(val));
+    UpdateSliceView();
 }

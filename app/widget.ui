@@ -42,7 +42,7 @@
     <string>Load Image</string>
    </property>
   </widget>
-  <widget class="QSlider" name="horizontalSlider">
+  <widget class="QSlider" name="horizontalSlider_center">
    <property name="geometry">
     <rect>
      <x>620</x>
@@ -51,11 +51,20 @@
      <height>16</height>
     </rect>
    </property>
+   <property name="minimum">
+    <number>-1024</number>
+   </property>
+   <property name="maximum">
+    <number>3071</number>
+   </property>
+   <property name="sliderPosition">
+    <number>1</number>
+   </property>
    <property name="orientation">
     <enum>Qt::Horizontal</enum>
    </property>
   </widget>
-  <widget class="QSlider" name="horizontalSlider_2">
+  <widget class="QSlider" name="horizontalSlider_windowSize">
    <property name="geometry">
     <rect>
      <x>620</x>
@@ -64,8 +73,40 @@
      <height>16</height>
     </rect>
    </property>
+   <property name="minimum">
+    <number>1</number>
+   </property>
+   <property name="maximum">
+    <number>4095</number>
+   </property>
    <property name="orientation">
     <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_sliderCenter">
+   <property name="geometry">
+    <rect>
+     <x>790</x>
+     <y>120</y>
+     <width>291</width>
+     <height>19</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>TextLabel</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_sliderWSize">
+   <property name="geometry">
+    <rect>
+     <x>790</x>
+     <y>190</y>
+     <width>291</width>
+     <height>19</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>TextLabel</string>
    </property>
   </widget>
  </widget>
