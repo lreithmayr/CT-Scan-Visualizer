@@ -38,4 +38,5 @@ class Widget : public QWidget {
   void UpdateWindowingCenter(const int val);
   void UpdateWindowingWindowSize(const int val);
   void UpdateDepthValue(const int val);
+  void UpdateThresholdValue(const int val);
 };

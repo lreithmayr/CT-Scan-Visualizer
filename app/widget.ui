@@ -71,7 +71,7 @@
    <property name="geometry">
     <rect>
      <x>620</x>
-     <y>200</y>
+     <y>180</y>
      <width>160</width>
      <height>16</height>
     </rect>
@@ -89,7 +89,7 @@
   <widget class="QLabel" name="label_sliderCenter">
    <property name="geometry">
     <rect>
-     <x>790</x>
+     <x>800</x>
      <y>120</y>
      <width>291</width>
      <height>19</height>
@@ -102,8 +102,8 @@
   <widget class="QLabel" name="label_sliderWSize">
    <property name="geometry">
     <rect>
-     <x>790</x>
-     <y>190</y>
+     <x>800</x>
+     <y>170</y>
      <width>291</width>
      <height>19</height>
     </rect>
@@ -137,6 +137,9 @@
    <property name="maximum">
     <number>129</number>
    </property>
+   <property name="sliderPosition">
+    <number>1</number>
+   </property>
    <property name="orientation">
     <enum>Qt::Vertical</enum>
    </property>
@@ -146,7 +149,45 @@
     <rect>
      <x>760</x>
      <y>360</y>
-     <width>67</width>
+     <width>181</width>
+     <height>19</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>TextLabel</string>
+   </property>
+  </widget>
+  <widget class="QSlider" name="horizontalSlider_threshold">
+   <property name="geometry">
+    <rect>
+     <x>620</x>
+     <y>240</y>
+     <width>160</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="minimum">
+    <number>-1024</number>
+   </property>
+   <property name="maximum">
+    <number>3071</number>
+   </property>
+   <property name="value">
+    <number>300</number>
+   </property>
+   <property name="sliderPosition">
+    <number>300</number>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_sliderThreshold">
+   <property name="geometry">
+    <rect>
+     <x>800</x>
+     <y>230</y>
+     <width>291</width>
      <height>19</height>
     </rect>
    </property>
