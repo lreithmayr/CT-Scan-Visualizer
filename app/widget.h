@@ -26,12 +26,15 @@ class Widget : public QWidget {
                               const int &window_size);
   void UpdateSliceView();
   void UpdateDepthImage();
+  void CalculateDepthBuffer(int16_t *input_data, int width, int height,
+                            int layers, int threshold);
 
  private:
   Ui::Widget *ui;
   QImage m_img;
+  QImage m_depthImage;
   int16_t *m_imageData{new int16_t[512 * 512]};
-
+  int16_t *m_depthImageData{new int16_t[512 * 512]};
  private slots:
   void LoadImage();
   void LoadImage3D();
@@ -39,4 +42,5 @@ class Widget : public QWidget {
   void UpdateWindowingWindowSize(const int val);
   void UpdateDepthValue(const int val);
   void UpdateThresholdValue(const int val);
+  void DrawDepthBuffer();
 };

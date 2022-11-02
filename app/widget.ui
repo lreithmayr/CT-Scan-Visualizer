@@ -16,8 +16,8 @@
   <widget class="QLabel" name="label_imgArea">
    <property name="geometry">
     <rect>
-     <x>40</x>
-     <y>150</y>
+     <x>30</x>
+     <y>230</y>
      <width>512</width>
      <height>512</height>
     </rect>
@@ -32,8 +32,8 @@
   <widget class="QPushButton" name="pushButton_loadImage">
    <property name="geometry">
     <rect>
-     <x>100</x>
-     <y>100</y>
+     <x>30</x>
+     <y>20</y>
      <width>88</width>
      <height>27</height>
     </rect>
@@ -45,8 +45,8 @@
   <widget class="QSlider" name="horizontalSlider_center">
    <property name="geometry">
     <rect>
-     <x>620</x>
-     <y>130</y>
+     <x>30</x>
+     <y>90</y>
      <width>160</width>
      <height>16</height>
     </rect>
@@ -70,8 +70,8 @@
   <widget class="QSlider" name="horizontalSlider_windowSize">
    <property name="geometry">
     <rect>
-     <x>620</x>
-     <y>180</y>
+     <x>30</x>
+     <y>120</y>
      <width>160</width>
      <height>16</height>
     </rect>
@@ -89,9 +89,9 @@
   <widget class="QLabel" name="label_sliderCenter">
    <property name="geometry">
     <rect>
-     <x>800</x>
-     <y>120</y>
-     <width>291</width>
+     <x>210</x>
+     <y>80</y>
+     <width>141</width>
      <height>19</height>
     </rect>
    </property>
@@ -102,9 +102,9 @@
   <widget class="QLabel" name="label_sliderWSize">
    <property name="geometry">
     <rect>
-     <x>800</x>
-     <y>170</y>
-     <width>291</width>
+     <x>210</x>
+     <y>110</y>
+     <width>141</width>
      <height>19</height>
     </rect>
    </property>
@@ -115,8 +115,8 @@
   <widget class="QPushButton" name="pushButton_loadImage3D">
    <property name="geometry">
     <rect>
-     <x>350</x>
-     <y>100</y>
+     <x>140</x>
+     <y>20</y>
      <width>141</width>
      <height>27</height>
     </rect>
@@ -128,8 +128,8 @@
   <widget class="QSlider" name="verticalSlider_depth">
    <property name="geometry">
     <rect>
-     <x>680</x>
-     <y>290</y>
+     <x>390</x>
+     <y>30</y>
      <width>16</width>
      <height>160</height>
     </rect>
@@ -147,8 +147,8 @@
   <widget class="QLabel" name="label_currentDepth">
    <property name="geometry">
     <rect>
-     <x>760</x>
-     <y>360</y>
+     <x>430</x>
+     <y>100</y>
      <width>181</width>
      <height>19</height>
     </rect>
@@ -160,8 +160,8 @@
   <widget class="QSlider" name="horizontalSlider_threshold">
    <property name="geometry">
     <rect>
-     <x>620</x>
-     <y>240</y>
+     <x>30</x>
+     <y>150</y>
      <width>160</width>
      <height>16</height>
     </rect>
@@ -185,11 +185,40 @@
   <widget class="QLabel" name="label_sliderThreshold">
    <property name="geometry">
     <rect>
-     <x>800</x>
-     <y>230</y>
-     <width>291</width>
+     <x>210</x>
+     <y>140</y>
+     <width>141</width>
      <height>19</height>
     </rect>
+   </property>
+   <property name="text">
+    <string>TextLabel</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_depthBuffer">
+   <property name="geometry">
+    <rect>
+     <x>770</x>
+     <y>90</y>
+     <width>131</width>
+     <height>27</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Create Depth Map</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_image3D">
+   <property name="geometry">
+    <rect>
+     <x>590</x>
+     <y>230</y>
+     <width>512</width>
+     <height>512</height>
+    </rect>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::Box</enum>
    </property>
    <property name="text">
     <string>TextLabel</string>
