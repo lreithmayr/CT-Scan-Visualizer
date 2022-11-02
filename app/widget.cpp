@@ -5,19 +5,23 @@
 Widget::Widget(QWidget *parent)
     : QWidget(parent),
       ui(new Ui::Widget),
-      m_img(QImage(512, 512, QImage::Format_RGB32)),
-      m_imageData(new int16_t[512 * 512]) {
+      m_img(QImage(512, 512, QImage::Format_RGB32)) {
   ui->setupUi(this);
   m_img.fill(qRgb(0, 0, 0));
 
   connect(ui->pushButton_loadImage, SIGNAL(clicked()), this, SLOT(LoadImage()));
+  connect(ui->pushButton_loadImage3D, SIGNAL(clicked()), this,
+          SLOT(LoadImage3D()));
   connect(ui->horizontalSlider_center, SIGNAL(valueChanged(int)), this,
           SLOT(UpdateWindowingCenter(int)));
   connect(ui->horizontalSlider_windowSize, SIGNAL(valueChanged(int)), this,
           SLOT(UpdateWindowingWindowSize(int)));
+  connect(ui->verticalSlider_depth, SIGNAL(valueChanged(int)), this,
+          SLOT(UpdateDepthValue(int)));
 
   ui->horizontalSlider_center->setValue(0);
   ui->horizontalSlider_windowSize->setValue(1200);
+  ui->verticalSlider_depth->setValue(0);
 }
 
 Widget::~Widget() {
@@ -56,6 +60,22 @@ void Widget::UpdateSliceView() {
   ui->label_imgArea->setPixmap(QPixmap::fromImage(m_img));
 }
 
+void Widget::UpdateDepthImage() {
+  int depth = ui->verticalSlider_depth->value();
+  for (int y = 0; y < m_img.height(); ++y) {
+    for (int x = 0; x < m_img.width(); ++x) {
+      int raw_value = m_imageData[(x + y * m_img.width()) +
+                                  (m_img.height() * m_img.width() * depth)];
+      int windowed_value =
+          WindowInputValue(raw_value, ui->horizontalSlider_center->value(),
+                           ui->horizontalSlider_windowSize->value());
+      m_img.setPixel(x, y,
+                     qRgb(windowed_value, windowed_value, windowed_value));
+    }
+  }
+  ui->label_imgArea->setPixmap(QPixmap::fromImage(m_img));
+}
+
 // Slots
 
 void Widget::LoadImage() {
@@ -70,18 +90,42 @@ void Widget::LoadImage() {
   }
 
   img_file.read(reinterpret_cast<char *>(m_imageData),
-                512 * 512 * sizeof(int16_t));
+                m_img.height() * m_img.width() * sizeof(int16_t));
   img_file.close();
 
   UpdateSliceView();
 }
 
-void Widget::UpdateWindowingCenter(const int &val) {
+void Widget::LoadImage3D() {
+    m_imageData = new int16_t[m_img.height() * m_img.width() * 130];
+  QString img_path = QFileDialog::getOpenFileName(
+      this, "Open Image", "../images", "Raw Image Files (*.raw)");
+  QFile img_file(img_path);
+  bool fopen = img_file.open(QIODevice::ReadOnly);
+  if (!fopen) {
+    QMessageBox::critical(this, "Error",
+                          "The specified file could not be opened!");
+    return;
+  }
+
+  img_file.read(reinterpret_cast<char *>(m_imageData),
+                m_img.height() * m_img.width() * 130 * sizeof(int16_t));
+  img_file.close();
+
+  UpdateDepthImage();
+}
+
+void Widget::UpdateWindowingCenter(const int val) {
   ui->label_sliderCenter->setText("Center: " + QString::number(val));
   UpdateSliceView();
 }
 
-void Widget::UpdateWindowingWindowSize(const int &val) {
+void Widget::UpdateWindowingWindowSize(const int val) {
   ui->label_sliderWSize->setText("Window Size: " + QString::number(val));
   UpdateSliceView();
+}
+
+void Widget::UpdateDepthValue(const int val) {
+  ui->label_currentDepth->setText("Depth: " + QString::number(val));
+  UpdateDepthImage();
 }

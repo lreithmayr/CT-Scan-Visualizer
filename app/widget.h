@@ -25,14 +25,17 @@ class Widget : public QWidget {
   static int WindowInputValue(const int &HU_value, const int &center,
                               const int &window_size);
   void UpdateSliceView();
+  void UpdateDepthImage();
 
  private:
   Ui::Widget *ui;
   QImage m_img;
-  int16_t *m_imageData{nullptr};
+  int16_t *m_imageData{new int16_t[512 * 512]};
 
  private slots:
   void LoadImage();
-  void UpdateWindowingCenter(const int &val);
-  void UpdateWindowingWindowSize(const int &val);
+  void LoadImage3D();
+  void UpdateWindowingCenter(const int val);
+  void UpdateWindowingWindowSize(const int val);
+  void UpdateDepthValue(const int val);
 };

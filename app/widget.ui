@@ -32,7 +32,7 @@
   <widget class="QPushButton" name="pushButton_loadImage">
    <property name="geometry">
     <rect>
-     <x>230</x>
+     <x>100</x>
      <y>100</y>
      <width>88</width>
      <height>27</height>
@@ -50,6 +50,9 @@
      <width>160</width>
      <height>16</height>
     </rect>
+   </property>
+   <property name="autoFillBackground">
+    <bool>false</bool>
    </property>
    <property name="minimum">
     <number>-1024</number>
@@ -102,6 +105,48 @@
      <x>790</x>
      <y>190</y>
      <width>291</width>
+     <height>19</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>TextLabel</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_loadImage3D">
+   <property name="geometry">
+    <rect>
+     <x>350</x>
+     <y>100</y>
+     <width>141</width>
+     <height>27</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Load Depth Image</string>
+   </property>
+  </widget>
+  <widget class="QSlider" name="verticalSlider_depth">
+   <property name="geometry">
+    <rect>
+     <x>680</x>
+     <y>290</y>
+     <width>16</width>
+     <height>160</height>
+    </rect>
+   </property>
+   <property name="maximum">
+    <number>129</number>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Vertical</enum>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_currentDepth">
+   <property name="geometry">
+    <rect>
+     <x>760</x>
+     <y>360</y>
+     <width>67</width>
      <height>19</height>
     </rect>
    </property>

@@ -1,4 +1,4 @@
-# C++ objects and libs
+ # C++ objects and libs
 *.slo
 *.lo
 *.o
@@ -56,3 +56,4 @@ compile_commands.json
 ./external
 ./app/app
 
+external/
