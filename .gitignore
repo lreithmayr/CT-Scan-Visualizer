@@ -53,7 +53,6 @@ compile_commands.json
 
 *_qmlcache.qrc
 
-./external
-./app/app
+app/app
 
 external/

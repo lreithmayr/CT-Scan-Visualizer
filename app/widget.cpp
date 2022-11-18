@@ -44,21 +44,6 @@ Widget::~Widget() {
 
 // Private member functions
 
-int Widget::WindowInputValue(const int &input_value, const int &center,
-                             const int &window_size) {
-  float half_window_size = 0.5 * static_cast<float>(window_size);
-  int lower_bound = static_cast<float>(center) - half_window_size;
-  int upper_bound = static_cast<float>(center) + half_window_size;
-  if (input_value < lower_bound) {
-    return 0;
-  } else if (input_value > upper_bound) {
-    return 255;
-  } else {
-    return (input_value - lower_bound) *
-           (255.0f / static_cast<float>(window_size));
-  }
-}
-
 void Widget::UpdateSliceView() {
   int center = ui->horizontalSlider_center->value();
   int window_size = ui->horizontalSlider_windowSize->value();
@@ -66,7 +51,7 @@ void Widget::UpdateSliceView() {
   for (int y = 0; y < m_img.height(); ++y) {
     for (int x = 0; x < m_img.width(); ++x) {
       int raw_value = m_imageData[x + (y * 512)];
-      int windowed_value = WindowInputValue(raw_value, center, window_size);
+        int windowed_value = MyLib::WindowInputValue(raw_value, center, window_size);
       m_img.setPixel(x, y,
                      qRgb(windowed_value, windowed_value, windowed_value));
     }
@@ -88,7 +73,7 @@ void Widget::UpdateDepthImage() {
         m_img.setPixel(x, y, qRgb(255, 0, 0));
         continue;
       }
-      int windowed_value = WindowInputValue(raw_value, center, window_size);
+      int windowed_value = MyLib::WindowInputValue(raw_value, center, window_size);
       m_img.setPixel(x, y,
                      qRgb(windowed_value, windowed_value, windowed_value));
     }

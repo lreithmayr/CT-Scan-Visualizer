@@ -4,9 +4,9 @@
 #include <QtCore/qglobal.h>
 
 #if defined(MYLIB_LIBRARY)
-#  define MYLIB_EXPORT Q_DECL_EXPORT
+#define MYLIB_EXPORT Q_DECL_EXPORT
 #else
-#  define MYLIB_EXPORT Q_DECL_IMPORT
+#define MYLIB_EXPORT Q_DECL_IMPORT
 #endif
 
-#endif // MYLIB_GLOBAL_H
+#endif  // MYLIB_GLOBAL_H

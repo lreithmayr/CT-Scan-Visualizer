@@ -1,11 +1,14 @@
 #pragma once
 
+#include<mylib.h>
+
 #include <ui_widget.h>
 
 #include <QFile>
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QWidget>
+
 #include <iostream>
 
 QT_BEGIN_NAMESPACE
@@ -22,8 +25,6 @@ class Widget : public QWidget {
   ~Widget() override;
 
  private:
-  static int WindowInputValue(const int &HU_value, const int &center,
-                              const int &window_size);
   void UpdateSliceView();
   void UpdateDepthImage();
   void CalculateDepthBuffer(int16_t *input_data, int width, int height,

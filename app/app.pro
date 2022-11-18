@@ -32,7 +32,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 
 CONFIG += warn_off
-INCLUDEPATH += $$PWD/../eigen
+INCLUDEPATH += $$PWD/../eigen \
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../MyLib/release/ -lMyLib
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../MyLib/debug/ -lMyLib
