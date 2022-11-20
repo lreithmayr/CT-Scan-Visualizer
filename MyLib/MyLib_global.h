@@ -3,6 +3,8 @@
 
 #include <QtCore/qglobal.h>
 
+#include<math.h>
+
 #if defined(MYLIB_LIBRARY)
 #define MYLIB_EXPORT Q_DECL_EXPORT
 #else

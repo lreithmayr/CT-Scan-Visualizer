@@ -4,22 +4,40 @@ MyLib::MyLib() {}
 
 ErrorOr MyLib::WindowInputValue(const int &input_value, const int &center,
                                 const int &window_size) {
+  if ((input_value < -1024) || (input_value > 3071)) {
+    errorOr.rc = ReturnCode::HU_OUT_OF_RANGE;
+    errorOr.val = -1;
+    return errorOr;
+  }
+
+  if ((window_size < 1) || (window_size > 4095)) {
+    errorOr.rc = ReturnCode::WIDTH_OUT_OF_RANGE;
+    errorOr.val = -1;
+    return errorOr;
+  }
+
+  if ((center < -1024) || (center > 3071)) {
+    errorOr.rc = ReturnCode::CENTER_OUT_OF_RANGE;
+    errorOr.val = -1;
+    return errorOr;
+  }
+
   float half_window_size = 0.5 * static_cast<float>(window_size);
   int lower_bound = static_cast<float>(center) - half_window_size;
   int upper_bound = static_cast<float>(center) + half_window_size;
 
+  errorOr.rc = ReturnCode::OK;
+
   if (input_value < lower_bound) {
-      errorOr.rc = ReturnCode::OK;
     errorOr.val = 0;
     return errorOr;
   } else if (input_value > upper_bound) {
-    errorOr.rc = ReturnCode::OK;
     errorOr.val = 255;
     return errorOr;
   }
-  errorOr.rc = ReturnCode::OK;
-  errorOr.val =
-      (input_value - lower_bound) * (255.0f / static_cast<float>(window_size));
+
+  errorOr.val = std::roundf((input_value - lower_bound) *
+                            (255.0f / static_cast<float>(window_size)));
   return errorOr;
 }
 
