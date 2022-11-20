@@ -1,14 +1,12 @@
 #pragma once
 
-#include<mylib.h>
-
+#include <mylib.h>
 #include <ui_widget.h>
 
 #include <QFile>
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QWidget>
-
 #include <iostream>
 
 QT_BEGIN_NAMESPACE
@@ -34,8 +32,10 @@ class Widget : public QWidget {
   Ui::Widget *ui;
   QImage m_img;
   QImage m_depthImage;
-  int16_t *m_imageData{new int16_t[512 * 512]};
-  int16_t *m_depthImageData{new int16_t[512 * 512]};
+  int16_t *m_imageData{new int16_t[512 * 512]()};
+  int16_t *m_depthImageData{new int16_t[512 * 512]()};
+  int16_t *m_depthBuffer{new int16_t[512 * 512]()};
+
  private slots:
   void LoadImage();
   void LoadImage3D();
