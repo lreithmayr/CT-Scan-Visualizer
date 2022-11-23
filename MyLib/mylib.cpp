@@ -31,12 +31,11 @@ ErrorOr<int, ReturnCode> MyLib::WindowInputValue(const int &input_value,
                       (255.0f / static_cast<float>(window_size)))};
 }
 
-ErrorOr<void, ReturnCode> MyLib::CalculateDepthBuffer(int16_t *input_data, int16_t *output_buffer, int width,
-                                int height, int layers, int threshold) {
-  if (output_buffer == nullptr) {
-        return {ReturnCode::BUFFER_EMPTY};
-  }
-
+ErrorOr<void, ReturnCode> MyLib::CalculateDepthBuffer(int16_t *input_data,
+                                                      int16_t *output_buffer,
+                                                      int width, int height,
+                                                      int layers,
+                                                      int threshold) {
   int raw_value = 0;
   for (int y = 0; y < height; ++y) {
     for (int x = 0; x < width; ++x) {
@@ -50,4 +49,49 @@ ErrorOr<void, ReturnCode> MyLib::CalculateDepthBuffer(int16_t *input_data, int16
       }
     }
   }
+
+  if (output_buffer == nullptr) {
+    return {ReturnCode::BUFFER_EMPTY};
+  }
+}
+
+ErrorOr<void, ReturnCode> MyLib::CalculateDepthBuffer3D(int16_t *depth_buffer,
+                                                        int16_t *output_buffer,
+                                                        int width, int height) {
+  int s_x = 2;
+  int s_x_sq = 4;
+  int s_y = 2;
+  int s_y_sq = 4;
+  int s_sq_sq = 16;
+  int T_x = 0;
+  int T_y = 0;
+  auto syTx_sq = 0;
+  auto sxTy_sq = 0;
+  auto denom = 0;
+  auto inv_denom = 0;
+  auto I_ref = 0;
+
+  for (int y = 0; y < height; ++y) {
+    for (int x = 1; x < width - 1; ++x) {
+      T_x =
+          depth_buffer[(x + y * width) - 1] - depth_buffer[(x + y * width) + 1];
+      T_y = depth_buffer[(x + y * width + width) - 1] -
+            depth_buffer[(x + y * width) + width + 1];
+      syTx_sq = s_y_sq * T_x * T_x;
+      sxTy_sq = s_x_sq * T_y * T_y;
+      denom = std::sqrt(syTx_sq + sxTy_sq + s_sq_sq);
+      inv_denom = 1 / denom;
+      I_ref = 255 * s_x_sq * inv_denom;
+      if (I_ref != 0) {
+          qDebug() << "I_ref: " << I_ref << "\n";
+      }
+
+      output_buffer[x + y * width] = I_ref;
+    }
+  }
+
+  if (output_buffer == nullptr) {
+    return {ReturnCode::BUFFER_EMPTY};
+  }
+
 }

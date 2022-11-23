@@ -16,7 +16,8 @@ Widget::Widget(QWidget *parent)
   connect(ui->pushButton_loadImage3D, SIGNAL(clicked()), this,
           SLOT(LoadImage3D()));
   connect(ui->pushButton_depthBuffer, SIGNAL(clicked()), this,
-          SLOT(DrawDepthBuffer()));
+          SLOT(RenderDepthBuffer()));
+  connect(ui->pushButton_render3D, SIGNAL(clicked()), this, SLOT(Render3D()));
 
   // Horizontal sliders
   connect(ui->horizontalSlider_threshold, SIGNAL(valueChanged(int)), this,
@@ -41,6 +42,8 @@ Widget::~Widget() {
   delete ui;
   delete[] m_imageData;
   delete[] m_depthImageData;
+  delete[] m_depthBuffer;
+  delete[] m_shaderBuffer;
 }
 
 // Private member functions
@@ -149,7 +152,7 @@ void Widget::UpdateThresholdValue(const int val) {
   UpdateDepthImage();
 }
 
-void Widget::DrawDepthBuffer() {
+void Widget::RenderDepthBuffer() {
   m_depthImageData = new int16_t[m_img.height() * m_img.width() * 130];
   QString img_path = QFileDialog::getOpenFileName(
       this, "Open Image", "../external/images", "Raw Image Files (*.raw)");
@@ -186,6 +189,53 @@ void Widget::DrawDepthBuffer() {
                             qRgb(m_depthBuffer[x + y * m_depthImage.width()],
                                  m_depthBuffer[x + y * m_depthImage.width()],
                                  m_depthBuffer[x + y * m_depthImage.width()]));
+    }
+  }
+  ui->label_image3D->setPixmap(QPixmap::fromImage(m_depthImage));
+}
+
+void Widget::Render3D() {
+  m_depthImageData = new int16_t[m_img.height() * m_img.width() * 130];
+  QString img_path = QFileDialog::getOpenFileName(
+      this, "Open Image", "../external/images", "Raw Image Files (*.raw)");
+  QFile img_file(img_path);
+  bool fopen = img_file.open(QIODevice::ReadOnly);
+  if (!fopen) {
+    QMessageBox::critical(this, "Error",
+                          "The specified file could not be opened!");
+    return;
+  }
+
+  img_file.read(reinterpret_cast<char *>(m_depthImageData),
+                m_img.height() * m_img.width() * 130 * sizeof(int16_t));
+  img_file.close();
+
+  ReturnCode ret =
+      MyLib::CalculateDepthBuffer(m_depthImageData, m_depthBuffer,
+                                  m_depthImage.width(), m_depthImage.height(),
+                                  130, ui->horizontalSlider_threshold->value())
+          .error();
+  if (ret == ReturnCode::BUFFER_EMPTY) {
+    QMessageBox::critical(this, "Error", "Depth Buffer is empty!");
+    return;
+  }
+
+  ReturnCode ret2 =
+      MyLib::CalculateDepthBuffer3D(m_depthBuffer, m_shaderBuffer,
+                                    m_depthImage.width(), m_depthImage.height())
+          .error();
+  if (ret2 == ReturnCode::BUFFER_EMPTY) {
+    QMessageBox::critical(this, "Error", "Depth Buffer is empty!");
+    return;
+  }
+
+
+  for (int y = 0; y < m_depthImage.height(); ++y) {
+    for (int x = 0; x < m_depthImage.width(); ++x) {
+      m_depthImage.setPixel(x, y,
+                            qRgb(m_shaderBuffer[x + y * m_depthImage.width()],
+                                 m_shaderBuffer[x + y * m_depthImage.width()],
+                                 m_shaderBuffer[x + y * m_depthImage.width()]));
     }
   }
   ui->label_image3D->setPixmap(QPixmap::fromImage(m_depthImage));

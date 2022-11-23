@@ -33,6 +33,7 @@ class Widget : public QWidget {
   int16_t *m_imageData{new int16_t[512 * 512]()};
   int16_t *m_depthImageData{new int16_t[512 * 512]()};
   int16_t *m_depthBuffer{new int16_t[512 * 512]()};
+  int16_t *m_shaderBuffer{new int16_t[512 * 512]()};
 
  private slots:
   void LoadImage();
@@ -41,5 +42,6 @@ class Widget : public QWidget {
   void UpdateWindowingWindowSize(const int val);
   void UpdateDepthValue(const int val);
   void UpdateThresholdValue(const int val);
-  void DrawDepthBuffer();
+  void RenderDepthBuffer();
+  void Render3D();
 };

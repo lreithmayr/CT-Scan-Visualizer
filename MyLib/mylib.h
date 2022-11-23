@@ -4,6 +4,8 @@
 #include "MyLib_global.h"
 #include "error.h"
 
+#include <QDebug>
+
 class MYLIB_EXPORT MyLib {
  public:
   MyLib();
@@ -16,6 +18,7 @@ class MYLIB_EXPORT MyLib {
                                   int width, int height, int layers,
                                   int threshold);
 
+  static ErrorOr<void, ReturnCode> CalculateDepthBuffer3D(int16_t *depth_buffer, int16_t *output_buffer, int width, int height);
 };
 
 #endif  // MYLIB_H
