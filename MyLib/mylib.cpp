@@ -2,43 +2,33 @@
 
 MyLib::MyLib() {}
 
-ErrorOr MyLib::WindowInputValue(const int &input_value, const int &center,
-                                const int &window_size) {
+ErrorOr<int, ReturnCode> MyLib::WindowInputValue(const int &input_value,
+                                                 const int &center,
+                                                 const int &window_size) {
   if ((input_value < -1024) || (input_value > 3071)) {
-    errorOr.rc = ReturnCode::HU_OUT_OF_RANGE;
-    errorOr.val = -1;
-    return errorOr;
+    return {ReturnCode::HU_OUT_OF_RANGE};
   }
 
   if ((window_size < 1) || (window_size > 4095)) {
-    errorOr.rc = ReturnCode::WIDTH_OUT_OF_RANGE;
-    errorOr.val = -1;
-    return errorOr;
+    return {ReturnCode::WIDTH_OUT_OF_RANGE};
   }
 
   if ((center < -1024) || (center > 3071)) {
-    errorOr.rc = ReturnCode::CENTER_OUT_OF_RANGE;
-    errorOr.val = -1;
-    return errorOr;
+    return {ReturnCode::CENTER_OUT_OF_RANGE};
   }
 
   float half_window_size = 0.5 * static_cast<float>(window_size);
   int lower_bound = static_cast<float>(center) - half_window_size;
   int upper_bound = static_cast<float>(center) + half_window_size;
 
-  errorOr.rc = ReturnCode::OK;
-
   if (input_value < lower_bound) {
-    errorOr.val = 0;
-    return errorOr;
+    return {0};
   } else if (input_value > upper_bound) {
-    errorOr.val = 255;
-    return errorOr;
+    return {255};
   }
 
-  errorOr.val = std::roundf((input_value - lower_bound) *
-                            (255.0f / static_cast<float>(window_size)));
-  return errorOr;
+  return {std::roundf((input_value - lower_bound) *
+                      (255.0f / static_cast<float>(window_size)))};
 }
 
 int MyLib::CalculateDepthBuffer(int16_t *input_data, int16_t *buffer, int width,

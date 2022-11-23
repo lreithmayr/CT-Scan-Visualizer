@@ -25,14 +25,14 @@ void MyLibUnitTest::windowingTest() {
   // VALID case 1: testing clean zero for bottom HU boundary
   ReturnCode retCode;
   int greyValue = 0;
-  retCode = MyLib::WindowInputValue(-34, -34 + 50, 100).rc;
+  retCode = MyLib::WindowInputValue(-34, -34 + 50, 100).error();
   QVERIFY2(retCode == ReturnCode::OK,
            "returns an error although input is valid");
   QVERIFY2(greyValue == 0, "windowing function lower bound");
 
   // VALID case 2: testing center of windowed domain
-  greyValue = MyLib::WindowInputValue(50, 50, 100).val;
-  retCode = MyLib::WindowInputValue(50, 50, 100).rc;
+  greyValue = MyLib::WindowInputValue(50, 50, 100).value();
+  retCode = MyLib::WindowInputValue(50, 50, 100).error();
   QVERIFY2(retCode == ReturnCode::OK,
            "returns an error although input is valid");
   QVERIFY2(greyValue == 128,
@@ -42,7 +42,7 @@ void MyLibUnitTest::windowingTest() {
   // ADD FURTHER VALID Testcases here
 
   // INVALID case 1: HU input too low
-  retCode = MyLib::WindowInputValue(-4100, -1000, 2000).rc;
+  retCode = MyLib::WindowInputValue(-4100, -1000, 2000).error();
   QVERIFY2(retCode == ReturnCode::HU_OUT_OF_RANGE,
            "No error code returned although input HU value was <-1024");
 

@@ -25,8 +25,6 @@ class Widget : public QWidget {
  private:
   void UpdateSliceView();
   void UpdateDepthImage();
-  void CalculateDepthBuffer(int16_t *input_data, int width, int height,
-                            int layers, int threshold);
 
  private:
   Ui::Widget *ui;

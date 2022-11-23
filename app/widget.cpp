@@ -52,10 +52,10 @@ void Widget::UpdateSliceView() {
   for (int y = 0; y < m_img.height(); ++y) {
     for (int x = 0; x < m_img.width(); ++x) {
       int raw_value = m_imageData[x + (y * 512)];
-      if (MyLib::WindowInputValue(raw_value, center, window_size).rc ==
+        if (MyLib::WindowInputValue(raw_value, center, window_size).error() ==
           ReturnCode::OK) {
         int windowed_value =
-            MyLib::WindowInputValue(raw_value, center, window_size).val;
+              MyLib::WindowInputValue(raw_value, center, window_size).value();
         m_img.setPixel(x, y,
                        qRgb(windowed_value, windowed_value, windowed_value));
       }
@@ -78,33 +78,16 @@ void Widget::UpdateDepthImage() {
         m_img.setPixel(x, y, qRgb(255, 0, 0));
         continue;
       }
-      if (MyLib::WindowInputValue(raw_value, center, window_size).rc ==
+      if (MyLib::WindowInputValue(raw_value, center, window_size).error() ==
           ReturnCode::OK) {
         int windowed_value =
-            MyLib::WindowInputValue(raw_value, center, window_size).val;
+              MyLib::WindowInputValue(raw_value, center, window_size).value();
         m_img.setPixel(x, y,
                        qRgb(windowed_value, windowed_value, windowed_value));
       }
     }
     ui->label_imgArea->setPixmap(QPixmap::fromImage(m_img));
   }
-}
-
-void Widget::CalculateDepthBuffer(int16_t *input_data, int width, int height,
-                                  int layers, int threshold) {
-  for (int y = 0; y < height; ++y) {
-    for (int x = 0; x < width; ++x) {
-      for (int d = 0; d < layers; ++d) {
-        int raw_value = input_data[(x + y * width) + (height * width * d)];
-        if (raw_value >= threshold) {
-          m_depthImage.setPixel(x, y, qRgb(d, d, d));
-          break;
-        }
-      }
-      m_depthImage.setPixel(x, y, qRgb(185, 189, 186));
-    }
-  }
-  ui->label_image3D->setPixmap(QPixmap::fromImage(m_depthImage));
 }
 
 // Slots
