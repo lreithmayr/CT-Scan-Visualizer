@@ -12,9 +12,10 @@ class MYLIB_EXPORT MyLib {
                                        const int &center,
                                        const int &window_size);
 
-  static int CalculateDepthBuffer(int16_t *input_data, int16_t *buffer,
+  static ErrorOr<void, ReturnCode> CalculateDepthBuffer(int16_t *input_data, int16_t *output_buffer,
                                   int width, int height, int layers,
                                   int threshold);
+
 };
 
 #endif  // MYLIB_H

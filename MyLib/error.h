@@ -7,7 +7,8 @@ enum class ReturnCode {
   OK,
   HU_OUT_OF_RANGE,
   CENTER_OUT_OF_RANGE,
-  WIDTH_OUT_OF_RANGE
+  WIDTH_OUT_OF_RANGE,
+  BUFFER_EMPTY
 };
 
 template <typename T, typename ErrorType>
@@ -25,6 +26,19 @@ class MYLIB_EXPORT ErrorOr {
 
  private:
   T m_returnValue;
+  ErrorType m_error;
+};
+
+template <typename ErrorType>
+class ErrorOr<void, ErrorType> {
+ public:
+  ErrorOr(ErrorType error) : m_error(error) {}
+
+  [[nodiscard]] ErrorType& error() { return m_error; }
+  [[nodiscard]] ErrorType const& error() const { return m_error; }
+  static bool IsError() { return (!ErrorType::OK); }
+
+ private:
   ErrorType m_error;
 };
 

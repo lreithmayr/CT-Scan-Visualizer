@@ -31,10 +31,10 @@ ErrorOr<int, ReturnCode> MyLib::WindowInputValue(const int &input_value,
                       (255.0f / static_cast<float>(window_size)))};
 }
 
-int MyLib::CalculateDepthBuffer(int16_t *input_data, int16_t *buffer, int width,
+ErrorOr<void, ReturnCode> MyLib::CalculateDepthBuffer(int16_t *input_data, int16_t *output_buffer, int width,
                                 int height, int layers, int threshold) {
-  if (buffer == nullptr) {
-    return -1;
+  if (output_buffer == nullptr) {
+        return {ReturnCode::BUFFER_EMPTY};
   }
 
   int raw_value = 0;
@@ -43,13 +43,11 @@ int MyLib::CalculateDepthBuffer(int16_t *input_data, int16_t *buffer, int width,
       for (int d = 0; d < layers; ++d) {
         raw_value = input_data[(x + y * width) + (height * width * d)];
         if (raw_value >= threshold) {
-          buffer[x + y * width] = d;
+          output_buffer[x + y * width] = d;
           break;
         }
-        buffer[x + y * width] = 0;
+        output_buffer[x + y * width] = 0;
       }
     }
   }
-
-  return 0;
 }

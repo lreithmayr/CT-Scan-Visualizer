@@ -52,10 +52,10 @@ void Widget::UpdateSliceView() {
   for (int y = 0; y < m_img.height(); ++y) {
     for (int x = 0; x < m_img.width(); ++x) {
       int raw_value = m_imageData[x + (y * 512)];
-        if (MyLib::WindowInputValue(raw_value, center, window_size).error() ==
+      if (MyLib::WindowInputValue(raw_value, center, window_size).error() ==
           ReturnCode::OK) {
         int windowed_value =
-              MyLib::WindowInputValue(raw_value, center, window_size).value();
+            MyLib::WindowInputValue(raw_value, center, window_size).value();
         m_img.setPixel(x, y,
                        qRgb(windowed_value, windowed_value, windowed_value));
       }
@@ -81,7 +81,7 @@ void Widget::UpdateDepthImage() {
       if (MyLib::WindowInputValue(raw_value, center, window_size).error() ==
           ReturnCode::OK) {
         int windowed_value =
-              MyLib::WindowInputValue(raw_value, center, window_size).value();
+            MyLib::WindowInputValue(raw_value, center, window_size).value();
         m_img.setPixel(x, y,
                        qRgb(windowed_value, windowed_value, windowed_value));
       }
@@ -165,11 +165,13 @@ void Widget::DrawDepthBuffer() {
                 m_img.height() * m_img.width() * 130 * sizeof(int16_t));
   img_file.close();
 
-  int ret = MyLib::CalculateDepthBuffer(
-      m_depthImageData, m_depthBuffer, m_depthImage.width(),
-      m_depthImage.height(), 130, ui->horizontalSlider_threshold->value());
+  ReturnCode ret =
+      MyLib::CalculateDepthBuffer(m_depthImageData, m_depthBuffer,
+                                  m_depthImage.width(), m_depthImage.height(),
+                                  130, ui->horizontalSlider_threshold->value())
+          .error();
 
-  if (ret == -1) {
+  if (ret == ReturnCode::BUFFER_EMPTY) {
     QMessageBox::critical(this, "Error", "Depth Buffer is empty!");
     return;
   }
