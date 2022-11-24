@@ -5,6 +5,10 @@
 
 #include "error.h"
 
+/**
+ * @brief The CTDataset class contains the CT image data as provided by the ICOM file format
+ */
+
 class MYLIB_EXPORT CTDataset {
  public:
   CTDataset() = default;
