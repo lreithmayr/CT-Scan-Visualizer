@@ -216,14 +216,22 @@ void Widget::Render3D() {
     return;
   }
 
+  // for (int i = 0; i < m_depthImage.width() * m_depthImage.height(); ++i) {
+  //     qDebug() << m_depthBuffer[i] << std::endl;
+  // }
+
   ReturnCode ret2 =
       MyLib::CalculateDepthBuffer3D(m_depthBuffer, m_shaderBuffer,
                                     m_depthImage.width(), m_depthImage.height())
           .error();
   if (ret2 == ReturnCode::BUFFER_EMPTY) {
-    QMessageBox::critical(this, "Error", "Depth Buffer is empty!");
+    QMessageBox::critical(this, "Error", "Shaded Buffer is empty!");
     return;
   }
+
+  // for (int i = 0; i < m_depthImage.width() * m_depthImage.height(); ++i) {
+  //     LOG(m_shaderBuffer[i]);
+  // }
 
   for (int y = 0; y < m_depthImage.height(); ++y) {
     for (int x = 0; x < m_depthImage.width(); ++x) {
