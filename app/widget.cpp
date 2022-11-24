@@ -181,10 +181,6 @@ void Widget::RenderDepthBuffer() {
 
   for (int y = 0; y < m_depthImage.height(); ++y) {
     for (int x = 0; x < m_depthImage.width(); ++x) {
-      if (m_depthBuffer[x + y * m_depthImage.width()] == 0) {
-        m_depthImage.setPixel(x, y, qRgb(185, 189, 186));
-        continue;
-      }
       m_depthImage.setPixel(x, y,
                             qRgb(m_depthBuffer[x + y * m_depthImage.width()],
                                  m_depthBuffer[x + y * m_depthImage.width()],
@@ -228,7 +224,6 @@ void Widget::Render3D() {
     QMessageBox::critical(this, "Error", "Depth Buffer is empty!");
     return;
   }
-
 
   for (int y = 0; y < m_depthImage.height(); ++y) {
     for (int x = 0; x < m_depthImage.width(); ++x) {

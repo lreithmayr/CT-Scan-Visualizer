@@ -39,13 +39,13 @@ ErrorOr<void, ReturnCode> MyLib::CalculateDepthBuffer(int16_t *input_data,
   int raw_value = 0;
   for (int y = 0; y < height; ++y) {
     for (int x = 0; x < width; ++x) {
+      output_buffer[x + y * width] = layers;
       for (int d = 0; d < layers; ++d) {
         raw_value = input_data[(x + y * width) + (height * width * d)];
         if (raw_value >= threshold) {
           output_buffer[x + y * width] = d;
           break;
         }
-        output_buffer[x + y * width] = 0;
       }
     }
   }
@@ -83,7 +83,7 @@ ErrorOr<void, ReturnCode> MyLib::CalculateDepthBuffer3D(int16_t *depth_buffer,
       inv_denom = 1 / denom;
       I_ref = 255 * s_x_sq * inv_denom;
       if (I_ref != 0) {
-          qDebug() << "I_ref: " << I_ref << "\n";
+        qDebug() << "I_ref: " << I_ref << "\n";
       }
 
       output_buffer[x + y * width] = I_ref;
@@ -93,5 +93,4 @@ ErrorOr<void, ReturnCode> MyLib::CalculateDepthBuffer3D(int16_t *depth_buffer,
   if (output_buffer == nullptr) {
     return {ReturnCode::BUFFER_EMPTY};
   }
-
 }
