@@ -15,6 +15,11 @@ class MYLIB_EXPORT CTDataset {
   ~CTDataset() { delete[] m_imageData; }
 
   ErrorOr<void, ReturnCode> load(QString &img_path);
+
+  /**
+   * @details Accessor for image data member variable.
+   * @return Pointer to the array of image data loaded in via load().
+   */
   [[no_discard]] int16_t *data() const { return m_imageData; }
 
  private:
