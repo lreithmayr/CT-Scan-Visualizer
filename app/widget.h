@@ -1,7 +1,9 @@
 #pragma once
 
-#include <mylib.h>
+#include "ct_dataset.h"
+
 #include <ui_widget.h>
+#include <mylib.h>
 
 #include <QFile>
 #include <QFileDialog>
@@ -28,6 +30,7 @@ class Widget : public QWidget {
 
  private:
   Ui::Widget *ui;
+  CTDataset m_ctimage;
   QImage m_img;
   QImage m_depthImage;
   int16_t *m_imageData{new int16_t[512 * 512]()};

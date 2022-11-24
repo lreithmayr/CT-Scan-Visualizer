@@ -40,8 +40,6 @@ Widget::Widget(QWidget *parent)
 
 Widget::~Widget() {
   delete ui;
-  delete[] m_imageData;
-  delete[] m_depthImageData;
   delete[] m_depthBuffer;
   delete[] m_shaderBuffer;
 }
@@ -54,7 +52,7 @@ void Widget::UpdateSliceView() {
 
   for (int y = 0; y < m_img.height(); ++y) {
     for (int x = 0; x < m_img.width(); ++x) {
-      int raw_value = m_imageData[x + (y * 512)];
+      int raw_value = m_ctimage.data()[x + (y * 512)];
       if (MyLib::WindowInputValue(raw_value, center, window_size).error() ==
           ReturnCode::OK) {
         int windowed_value =
@@ -75,8 +73,9 @@ void Widget::UpdateDepthImage() {
 
   for (int y = 0; y < m_img.height(); ++y) {
     for (int x = 0; x < m_img.width(); ++x) {
-      int raw_value = m_imageData[(x + y * m_img.width()) +
-                                  (m_img.height() * m_img.width() * depth)];
+      int raw_value =
+          m_ctimage.data()[(x + y * m_img.width()) +
+                            (m_img.height() * m_img.width() * depth)];
       if (raw_value > threshold) {
         m_img.setPixel(x, y, qRgb(255, 0, 0));
         continue;
@@ -97,37 +96,27 @@ void Widget::UpdateDepthImage() {
 
 void Widget::LoadImage() {
   QString img_path = QFileDialog::getOpenFileName(
-      this, "Open Image", "../external/images", "Raw Image Files (*.raw)");
-  QFile img_file(img_path);
-  bool fopen = img_file.open(QIODevice::ReadOnly);
-  if (!fopen) {
+      this, "Open Image", "../external/images/", "Raw Image Files (*.raw)");
+  ReturnCode ret = m_ctimage.load(img_path).error();
+
+  if (ret != ReturnCode::OK) {
     QMessageBox::critical(this, "Error",
                           "The specified file could not be opened!");
     return;
   }
-
-  img_file.read(reinterpret_cast<char *>(m_imageData),
-                m_img.height() * m_img.width() * sizeof(int16_t));
-  img_file.close();
-
   UpdateSliceView();
 }
 
 void Widget::LoadImage3D() {
-  m_imageData = new int16_t[m_img.height() * m_img.width() * 130];
   QString img_path = QFileDialog::getOpenFileName(
       this, "Open Image", "../external/images", "Raw Image Files (*.raw)");
-  QFile img_file(img_path);
-  bool fopen = img_file.open(QIODevice::ReadOnly);
-  if (!fopen) {
+  ReturnCode ret = m_ctimage.load(img_path).error();
+
+  if (ret != ReturnCode::OK) {
     QMessageBox::critical(this, "Error",
                           "The specified file could not be opened!");
     return;
   }
-
-  img_file.read(reinterpret_cast<char *>(m_imageData),
-                m_img.height() * m_img.width() * 130 * sizeof(int16_t));
-  img_file.close();
 
   UpdateDepthImage();
 }
@@ -153,28 +142,23 @@ void Widget::UpdateThresholdValue(const int val) {
 }
 
 void Widget::RenderDepthBuffer() {
-  m_depthImageData = new int16_t[m_img.height() * m_img.width() * 130];
   QString img_path = QFileDialog::getOpenFileName(
       this, "Open Image", "../external/images", "Raw Image Files (*.raw)");
-  QFile img_file(img_path);
-  bool fopen = img_file.open(QIODevice::ReadOnly);
-  if (!fopen) {
+  ReturnCode ret = m_ctimage.load(img_path).error();
+
+  if (ret != ReturnCode::OK) {
     QMessageBox::critical(this, "Error",
                           "The specified file could not be opened!");
     return;
   }
 
-  img_file.read(reinterpret_cast<char *>(m_depthImageData),
-                m_img.height() * m_img.width() * 130 * sizeof(int16_t));
-  img_file.close();
-
-  ReturnCode ret =
-      MyLib::CalculateDepthBuffer(m_depthImageData, m_depthBuffer,
+  ReturnCode ret2 =
+      MyLib::CalculateDepthBuffer(m_ctimage.data(), m_depthBuffer,
                                   m_depthImage.width(), m_depthImage.height(),
                                   130, ui->horizontalSlider_threshold->value())
           .error();
 
-  if (ret == ReturnCode::BUFFER_EMPTY) {
+  if (ret2 == ReturnCode::BUFFER_EMPTY) {
     QMessageBox::critical(this, "Error", "Depth Buffer is empty!");
     return;
   }
@@ -191,23 +175,18 @@ void Widget::RenderDepthBuffer() {
 }
 
 void Widget::Render3D() {
-  m_depthImageData = new int16_t[m_img.height() * m_img.width() * 130];
   QString img_path = QFileDialog::getOpenFileName(
       this, "Open Image", "../external/images", "Raw Image Files (*.raw)");
-  QFile img_file(img_path);
-  bool fopen = img_file.open(QIODevice::ReadOnly);
-  if (!fopen) {
+  ReturnCode err = m_ctimage.load(img_path).error();
+
+  if (err != ReturnCode::OK) {
     QMessageBox::critical(this, "Error",
                           "The specified file could not be opened!");
     return;
   }
 
-  img_file.read(reinterpret_cast<char *>(m_depthImageData),
-                m_img.height() * m_img.width() * 130 * sizeof(int16_t));
-  img_file.close();
-
   ReturnCode ret =
-      MyLib::CalculateDepthBuffer(m_depthImageData, m_depthBuffer,
+      MyLib::CalculateDepthBuffer(m_ctimage.data(), m_depthBuffer,
                                   m_depthImage.width(), m_depthImage.height(),
                                   130, ui->horizontalSlider_threshold->value())
           .error();
@@ -215,10 +194,6 @@ void Widget::Render3D() {
     QMessageBox::critical(this, "Error", "Depth Buffer is empty!");
     return;
   }
-
-  // for (int i = 0; i < m_depthImage.width() * m_depthImage.height(); ++i) {
-  //     qDebug() << m_depthBuffer[i] << std::endl;
-  // }
 
   ReturnCode ret2 =
       MyLib::CalculateDepthBuffer3D(m_depthBuffer, m_shaderBuffer,
@@ -228,10 +203,6 @@ void Widget::Render3D() {
     QMessageBox::critical(this, "Error", "Shaded Buffer is empty!");
     return;
   }
-
-  // for (int i = 0; i < m_depthImage.width() * m_depthImage.height(); ++i) {
-  //     LOG(m_shaderBuffer[i]);
-  // }
 
   for (int y = 0; y < m_depthImage.height(); ++y) {
     for (int x = 0; x < m_depthImage.width(); ++x) {

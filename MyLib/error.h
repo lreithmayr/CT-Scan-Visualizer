@@ -8,7 +8,8 @@ enum class ReturnCode {
   HU_OUT_OF_RANGE,
   CENTER_OUT_OF_RANGE,
   WIDTH_OUT_OF_RANGE,
-  BUFFER_EMPTY
+  BUFFER_EMPTY,
+  FOPEN_ERROR
 };
 
 template <typename T, typename ErrorType>
