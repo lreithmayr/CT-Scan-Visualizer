@@ -53,6 +53,8 @@ ErrorOr<void> MyLib::CalculateDepthBuffer(int16_t *input_data,
   if (output_buffer == nullptr) {
     return {ReturnCode::BUFFER_EMPTY};
   }
+
+  return {ReturnCode::OK};
 }
 
 ErrorOr<void> MyLib::CalculateDepthBuffer3D(int16_t *depth_buffer,
@@ -90,4 +92,6 @@ ErrorOr<void> MyLib::CalculateDepthBuffer3D(int16_t *depth_buffer,
   if (output_buffer == nullptr) {
     return {ReturnCode::BUFFER_EMPTY};
   }
+
+  return {ReturnCode::OK};
 }

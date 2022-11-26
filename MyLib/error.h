@@ -15,7 +15,6 @@ enum class ReturnCode {
 template <typename T>
 class MYLIB_EXPORT ErrorOr {
  public:
-  ErrorOr(): m_error(ReturnCode::OK) {}
   ErrorOr(T value) : m_value(value), m_error(ReturnCode::OK) {}
   ErrorOr(ReturnCode error) : m_error(error) {}
 
@@ -23,6 +22,7 @@ class MYLIB_EXPORT ErrorOr {
   [[nodiscard]] T const& value() const { return m_value; }
   [[nodiscard]] ReturnCode& error() { return m_error; }
   [[nodiscard]] ReturnCode const& error() const { return m_error; }
+  bool Ok() { return (m_error == ReturnCode::OK); }
 
  private:
   T m_value;
@@ -30,9 +30,9 @@ class MYLIB_EXPORT ErrorOr {
 };
 
 template <>
-class ErrorOr<void>: public ErrorOr<int> {
+class ErrorOr<void> : public ErrorOr<int> {
  public:
-    using ErrorOr<int>::ErrorOr;
+  using ErrorOr<int>::ErrorOr;
 };
 
 #endif  // ERROR_H
