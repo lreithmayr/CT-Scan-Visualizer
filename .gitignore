@@ -58,3 +58,6 @@ app/app
 external/
 
 doc/
+
+MyLibUnitTest/tst_mylibunittest.debug
+app/app.debug

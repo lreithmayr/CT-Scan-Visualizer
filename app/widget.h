@@ -31,10 +31,8 @@ class Widget : public QWidget {
  private:
   Ui::Widget *ui;
   CTDataset m_ctimage;
-  QImage m_img;
-  QImage m_depthImage;
-  int16_t *m_imageData{new int16_t[512 * 512]()};
-  int16_t *m_depthImageData{new int16_t[512 * 512]()};
+  QImage m_qImage;
+
   int16_t *m_depthBuffer{new int16_t[512 * 512]()};
   int16_t *m_shaderBuffer{new int16_t[512 * 512]()};
 

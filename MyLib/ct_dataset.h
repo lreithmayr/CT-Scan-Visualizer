@@ -3,7 +3,7 @@
 
 #include <QFile>
 
-#include "error.h"
+#include "status.h"
 
 /**
  * @brief The CTDataset class contains the CT image data as provided by the ICOM file format
@@ -15,7 +15,7 @@ class MYLIB_EXPORT CTDataset {
   ~CTDataset() { delete[] m_imageData; }
 
   /// Load CT image data from a specified path
-  ErrorOr<void> load(QString &img_path);
+  Status load(QString &img_path);
 
   /**
    * @details Accessor for image data member variable.

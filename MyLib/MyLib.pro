@@ -23,8 +23,8 @@ SOURCES += \
 HEADERS += \
     MyLib_global.h \
     ct_dataset.h \
-    error.h \
-    mylib.h
+    mylib.h \
+    status.h
 
 CONFIG += warn_off
 INCLUDEPATH += $$PWD/../eigen

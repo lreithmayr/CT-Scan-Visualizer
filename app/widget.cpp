@@ -5,11 +5,10 @@
 Widget::Widget(QWidget *parent)
     : QWidget(parent),
       ui(new Ui::Widget),
-      m_img(QImage(512, 512, QImage::Format_RGB32)),
-      m_depthImage(QImage(512, 512, QImage::Format_RGB32)) {
+      m_qImage(QImage(512, 512, QImage::Format_RGB32)) {
   // Housekeeping
   ui->setupUi(this);
-  m_img.fill(qRgb(0, 0, 0));
+  m_qImage.fill(qRgb(0, 0, 0));
 
   // Buttons
   connect(ui->pushButton_loadImage, SIGNAL(clicked()), this, SLOT(LoadImage()));
@@ -50,18 +49,18 @@ void Widget::UpdateSliceView() {
   int center = ui->horizontalSlider_center->value();
   int window_size = ui->horizontalSlider_windowSize->value();
 
-  for (int y = 0; y < m_img.height(); ++y) {
-    for (int x = 0; x < m_img.width(); ++x) {
+  for (int y = 0; y < m_qImage.height(); ++y) {
+    for (int x = 0; x < m_qImage.width(); ++x) {
       int raw_value = m_ctimage.data()[x + (y * 512)];
       if (MyLib::WindowInputValue(raw_value, center, window_size).Ok()) {
         int windowed_value =
             MyLib::WindowInputValue(raw_value, center, window_size).value();
-        m_img.setPixel(x, y,
+        m_qImage.setPixel(x, y,
                        qRgb(windowed_value, windowed_value, windowed_value));
       }
     }
   }
-  ui->label_imgArea->setPixmap(QPixmap::fromImage(m_img));
+  ui->label_imgArea->setPixmap(QPixmap::fromImage(m_qImage));
 }
 
 void Widget::UpdateDepthImage() {
@@ -70,23 +69,23 @@ void Widget::UpdateDepthImage() {
   int center = ui->horizontalSlider_center->value();
   int window_size = ui->horizontalSlider_windowSize->value();
 
-  for (int y = 0; y < m_img.height(); ++y) {
-    for (int x = 0; x < m_img.width(); ++x) {
+  for (int y = 0; y < m_qImage.height(); ++y) {
+    for (int x = 0; x < m_qImage.width(); ++x) {
       int raw_value =
-          m_ctimage.data()[(x + y * m_img.width()) +
-                           (m_img.height() * m_img.width() * depth)];
+          m_ctimage.data()[(x + y * m_qImage.width()) +
+                           (m_qImage.height() * m_qImage.width() * depth)];
       if (raw_value > threshold) {
-        m_img.setPixel(x, y, qRgb(255, 0, 0));
+        m_qImage.setPixel(x, y, qRgb(255, 0, 0));
         continue;
       }
       if (MyLib::WindowInputValue(raw_value, center, window_size).Ok()) {
         int windowed_value =
             MyLib::WindowInputValue(raw_value, center, window_size).value();
-        m_img.setPixel(x, y,
+        m_qImage.setPixel(x, y,
                        qRgb(windowed_value, windowed_value, windowed_value));
       }
     }
-    ui->label_imgArea->setPixmap(QPixmap::fromImage(m_img));
+    ui->label_imgArea->setPixmap(QPixmap::fromImage(m_qImage));
   }
 }
 
@@ -149,19 +148,19 @@ void Widget::RenderDepthBuffer() {
   }
 
   if (MyLib::CalculateDepthBuffer(m_ctimage.data(), m_depthBuffer,
-                                  m_depthImage.width(), m_depthImage.height(),
+                                  m_qImage.width(), m_qImage.height(),
                                   130, ui->horizontalSlider_threshold->value())
           .Ok()) {
-    for (int y = 0; y < m_depthImage.height(); ++y) {
-      for (int x = 0; x < m_depthImage.width(); ++x) {
-        m_depthImage.setPixel(
+    for (int y = 0; y < m_qImage.height(); ++y) {
+      for (int x = 0; x < m_qImage.width(); ++x) {
+        m_qImage.setPixel(
             x, y,
-            qRgb(m_depthBuffer[x + y * m_depthImage.width()],
-                 m_depthBuffer[x + y * m_depthImage.width()],
-                 m_depthBuffer[x + y * m_depthImage.width()]));
+            qRgb(m_depthBuffer[x + y * m_qImage.width()],
+                 m_depthBuffer[x + y * m_qImage.width()],
+                 m_depthBuffer[x + y * m_qImage.width()]));
       }
     }
-    ui->label_image3D->setPixmap(QPixmap::fromImage(m_depthImage));
+    ui->label_image3D->setPixmap(QPixmap::fromImage(m_qImage));
   }
 }
 
@@ -176,23 +175,23 @@ void Widget::Render3D() {
   }
 
   if (MyLib::CalculateDepthBuffer(m_ctimage.data(), m_depthBuffer,
-                                  m_depthImage.width(), m_depthImage.height(),
+                                  m_qImage.width(), m_qImage.height(),
                                   130, ui->horizontalSlider_threshold->value())
           .Ok()) {
     if (MyLib::CalculateDepthBuffer3D(m_depthBuffer, m_shaderBuffer,
-                                      m_depthImage.width(),
-                                      m_depthImage.height())
+                                      m_qImage.width(),
+                                      m_qImage.height())
             .Ok()) {
-      for (int y = 0; y < m_depthImage.height(); ++y) {
-        for (int x = 0; x < m_depthImage.width(); ++x) {
-          m_depthImage.setPixel(
+      for (int y = 0; y < m_qImage.height(); ++y) {
+        for (int x = 0; x < m_qImage.width(); ++x) {
+          m_qImage.setPixel(
               x, y,
-              qRgb(m_shaderBuffer[x + y * m_depthImage.width()],
-                   m_shaderBuffer[x + y * m_depthImage.width()],
-                   m_shaderBuffer[x + y * m_depthImage.width()]));
+              qRgb(m_shaderBuffer[x + y * m_qImage.width()],
+                   m_shaderBuffer[x + y * m_qImage.width()],
+                   m_shaderBuffer[x + y * m_qImage.width()]));
         }
       }
-      ui->label_image3D->setPixmap(QPixmap::fromImage(m_depthImage));
+      ui->label_image3D->setPixmap(QPixmap::fromImage(m_qImage));
     }
   }
 }
