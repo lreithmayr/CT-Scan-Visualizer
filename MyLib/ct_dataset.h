@@ -14,7 +14,8 @@ class MYLIB_EXPORT CTDataset {
   CTDataset() = default;
   ~CTDataset() { delete[] m_imageData; }
 
-  ErrorOr<void, ReturnCode> load(QString &img_path);
+  /// Load CT image data from a specified path
+  ErrorOr<void> load(QString &img_path);
 
   /**
    * @details Accessor for image data member variable.

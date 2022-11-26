@@ -2,7 +2,7 @@
 
 MyLib::MyLib() {}
 
-ErrorOr<int, ReturnCode> MyLib::WindowInputValue(const int &input_value,
+ErrorOr<int> MyLib::WindowInputValue(const int &input_value,
                                                  const int &center,
                                                  const int &window_size) {
   if ((input_value < -1024) || (input_value > 3071)) {
@@ -31,7 +31,7 @@ ErrorOr<int, ReturnCode> MyLib::WindowInputValue(const int &input_value,
                       (255.0f / static_cast<float>(window_size)))};
 }
 
-ErrorOr<void, ReturnCode> MyLib::CalculateDepthBuffer(int16_t *input_data,
+ErrorOr<void> MyLib::CalculateDepthBuffer(int16_t *input_data,
                                                       int16_t *output_buffer,
                                                       int width, int height,
                                                       int layers,
@@ -55,7 +55,7 @@ ErrorOr<void, ReturnCode> MyLib::CalculateDepthBuffer(int16_t *input_data,
   }
 }
 
-ErrorOr<void, ReturnCode> MyLib::CalculateDepthBuffer3D(int16_t *depth_buffer,
+ErrorOr<void> MyLib::CalculateDepthBuffer3D(int16_t *depth_buffer,
                                                         int16_t *output_buffer,
                                                         int width, int height) {
   auto s_x = 2;

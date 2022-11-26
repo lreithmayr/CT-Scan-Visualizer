@@ -5,7 +5,7 @@
  * @param img_path The file path of the CT image.
  * @return Returns an ErrorOr type. If loading was successful, ReturnCode::OK will be returned, else ReturnCode::FOPEN_ERROR.
  */
-ErrorOr<void, ReturnCode> CTDataset::load(QString &img_path) {
+ErrorOr<void> CTDataset::load(QString &img_path) {
   QFile img_file(img_path);
   bool fopen = img_file.open(QIODevice::ReadOnly);
   if (!fopen) {

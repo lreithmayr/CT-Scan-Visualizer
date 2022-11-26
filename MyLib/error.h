@@ -12,35 +12,27 @@ enum class ReturnCode {
   FOPEN_ERROR
 };
 
-template <typename T, typename ErrorType>
+template <typename T>
 class MYLIB_EXPORT ErrorOr {
  public:
-  ErrorOr(T return_value)
-      : m_returnValue(return_value), m_error(ErrorType::OK) {}
-  ErrorOr(ErrorType error) : m_returnValue(), m_error(error) {}
+  ErrorOr(): m_error(ReturnCode::OK) {}
+  ErrorOr(T value) : m_value(value), m_error(ReturnCode::OK) {}
+  ErrorOr(ReturnCode error) : m_error(error) {}
 
-  [[nodiscard]] T& value() { return m_returnValue; }
-  [[nodiscard]] T const& value() const { return m_returnValue; }
-  [[nodiscard]] ErrorType& error() { return m_error; }
-  [[nodiscard]] ErrorType const& error() const { return m_error; }
-  static bool IsError() { return (!ErrorType::OK); }
+  [[nodiscard]] T& value() { return m_value; }
+  [[nodiscard]] T const& value() const { return m_value; }
+  [[nodiscard]] ReturnCode& error() { return m_error; }
+  [[nodiscard]] ReturnCode const& error() const { return m_error; }
 
  private:
-  T m_returnValue;
-  ErrorType m_error;
+  T m_value;
+  ReturnCode m_error;
 };
 
-template <typename ErrorType>
-class ErrorOr<void, ErrorType> {
+template <>
+class ErrorOr<void>: public ErrorOr<int> {
  public:
-  ErrorOr(ErrorType error) : m_error(error) {}
-
-  [[nodiscard]] ErrorType& error() { return m_error; }
-  [[nodiscard]] ErrorType const& error() const { return m_error; }
-  static bool IsError() { return (!ErrorType::OK); }
-
- private:
-  ErrorType m_error;
+    using ErrorOr<int>::ErrorOr;
 };
 
 #endif  // ERROR_H
