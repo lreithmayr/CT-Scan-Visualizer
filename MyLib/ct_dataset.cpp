@@ -42,15 +42,15 @@ int16_t *CTDataset::RenderedDepthBuffer() const {
 
 StatusOr<int> CTDataset::WindowInputValue(const int &input_value, const int &center, const int &window_size) {
   if ((input_value < -1024) || (input_value > 3071)) {
-	return Status(StatusCode::HU_OUT_OF_RANGE);
+	return StatusOr<int>(Status(StatusCode::HU_OUT_OF_RANGE));
   }
 
   if ((window_size < 1) || (window_size > 4095)) {
-	return Status(StatusCode::WIDTH_OUT_OF_RANGE);
+	return StatusOr<int>(Status(StatusCode::WIDTH_OUT_OF_RANGE));
   }
 
   if ((center < -1024) || (center > 3071)) {
-	return Status(StatusCode::CENTER_OUT_OF_RANGE);
+	return StatusOr<int>(Status(StatusCode::CENTER_OUT_OF_RANGE));
   }
 
   float half_window_size = 0.5f * static_cast<float>(window_size);
@@ -58,13 +58,13 @@ StatusOr<int> CTDataset::WindowInputValue(const int &input_value, const int &cen
   int upper_bound = static_cast<float>(center) + half_window_size;
 
   if (input_value < lower_bound) {
-	return {0};
+	return StatusOr<int>(0);
   } else if (input_value > upper_bound) {
-	return {255};
+	return StatusOr<int>(255);
   }
 
-  return std::roundf((input_value - lower_bound) *
-	(255.0f / static_cast<float>(window_size)));
+  return StatusOr<int>(std::roundf((input_value - lower_bound) *
+	(255.0f / static_cast<float>(window_size))));
 }
 
 Status CTDataset::CalculateDepthBuffer(int threshold) {

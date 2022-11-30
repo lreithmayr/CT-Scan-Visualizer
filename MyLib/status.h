@@ -30,16 +30,16 @@ class [[nodiscard]] Status final {
   StatusCode m_statusCode;
 };
 
-template <typename T>
+template<typename T>
 class [[nodiscard]] StatusOr {
  public:
   explicit StatusOr(T value) : m_value(value), m_status(StatusCode::OK) {}
   explicit StatusOr(Status stat) : m_status(stat) {}
 
-  T& value() { return m_value; }
-  T const& value() const { return m_value; }
-  Status& status() { return m_status; }
-  Status const& status() const { return m_status; }
+  T &value() { return m_value; }
+  T const &value() const { return m_value; }
+  Status &status() { return m_status; }
+  Status const &status() const { return m_status; }
   bool Ok() { return (m_status.code() == StatusCode::OK); }
 
  private:
