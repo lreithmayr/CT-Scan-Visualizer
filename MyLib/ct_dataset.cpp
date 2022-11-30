@@ -46,7 +46,7 @@ StatusOr<int> CTDataset::WindowInputValue(const int &input_value, const int &cen
 	return Status(StatusCode::CENTER_OUT_OF_RANGE);
   }
 
-  float half_window_size = 0.5 * static_cast<float>(window_size);
+  float half_window_size = 0.5f * static_cast<float>(window_size);
   int lower_bound = static_cast<float>(center) - half_window_size;
   int upper_bound = static_cast<float>(center) + half_window_size;
 
@@ -93,8 +93,8 @@ Status CTDataset::RenderDepthBuffer() {
   auto syTx_sq = 0;
   auto sxTy_sq = 0;
   auto nom = 255 * s_x * s_y;
-  float denom = 0;
-  float inv = 0;
+  double denom = 0;
+  double inv = 0;
   int I_ref = 0;
 
   for (int y = 1; y < m_imgHeight - 1; ++y) {
