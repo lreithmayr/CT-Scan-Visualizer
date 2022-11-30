@@ -17,7 +17,7 @@ CTDataset::~CTDataset() {
 /**
  * @details Loads in an image file at the location specified via img_path
  * @param img_path The file path of the CT image.
- * @return Returns an ErrorOr type. If loading was successful, ReturnCode::OK will be returned, else ReturnCode::FOPEN_ERROR.
+ * @return ErrorOr type. If loading was successful, ReturnCode::OK will be returned, else ReturnCode::FOPEN_ERROR.
  */
 Status CTDataset::load(QString &img_path) {
   QFile img_file(img_path);
@@ -26,12 +26,16 @@ Status CTDataset::load(QString &img_path) {
 	return Status(StatusCode::FOPEN_ERROR);
   }
 
-  img_file.read(reinterpret_cast<char *>(m_imgData),
-				m_imgHeight * m_imgWidth * m_layers * sizeof(int16_t));
+  img_file.read(reinterpret_cast<char *>(m_imgData), m_imgHeight * m_imgWidth * m_layers * sizeof(int16_t));
   img_file.close();
   return Status(StatusCode::OK);
 }
 
+/**
+ * @details Provides access to the loaded image data
+ * @return Pointer of type in16_t (short) to the image data array
+ * @attention Null-checks and bounds-checks are the user's responsiblity
+ */
 int16_t *CTDataset::Data() const {
   return m_imgData;
 }
@@ -63,8 +67,7 @@ StatusOr<int> CTDataset::WindowInputValue(const int &input_value, const int &cen
 	return StatusOr<int>(255);
   }
 
-  return StatusOr<int>(std::roundf((input_value - lower_bound) *
-	(255.0f / static_cast<float>(window_size))));
+  return StatusOr<int>(std::roundf((input_value - lower_bound) * (255.0f / static_cast<float>(window_size))));
 }
 
 Status CTDataset::CalculateDepthBuffer(int threshold) {

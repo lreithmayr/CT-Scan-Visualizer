@@ -1,12 +1,14 @@
 #ifndef CT_DATASET_H
 #define CT_DATASET_H
 
+#include "status.h"
 #include <QFile>
 
-#include "status.h"
-
 /**
- * @brief The CTDataset class contains the CT image Data as provided by the ICOM file format
+ * @brief The CTDataset class is the central class to initialize and process CT scan images.
+ * @details
+ * CTDataset provides methods for loading the raw CT image files, processing the grey values contained within it, and
+ * rendering 3D representations of the image data.
  */
 
 class MYLIB_EXPORT CTDataset {
@@ -14,26 +16,41 @@ class MYLIB_EXPORT CTDataset {
   CTDataset();
   ~CTDataset();
 
-  /// Load CT image Data from a specified path
+  /// Load CT image data from the specified file path
   Status load(QString &img_path);
 
-  /// Return image Data
+  /// Get a pointer to the image data
   [[no_discard]] int16_t *Data() const;
 
+  /// Get a pointer to the 3D rendered image buffer
   [[nodiscard]] int16_t *RenderedDepthBuffer() const;
 
+  /// Normalize pixel values to a pre-defined grey-value range
   static StatusOr<int> WindowInputValue(const int &input_value, const int &center, const int &window_size);
 
+  /// Calculate the depth value for each pixel in the CT image
   Status CalculateDepthBuffer(int threshold);
 
+  /// Render a shaded 3D image from the depth buffer
   Status RenderDepthBuffer();
 
  private:
+  /// Height of the provided CT image (in pixels)
   int m_imgHeight;
+
+  /// Width of the provided CT image
   int m_imgWidth;
+
+  /// Number of depth layers of the provided CT image
   int m_layers;
+
+  /// Buffer for the raw image data
   int16_t *m_imgData;
+
+  /// Buffer for the calculated depth values
   int16_t *m_depthBuffer;
+
+  /// Buffer for the rendered image
   int16_t *m_renderedDepthBuffer;
 };
 
