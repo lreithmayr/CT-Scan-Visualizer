@@ -18,7 +18,7 @@ class [[nodiscard]] Status final {
   Status() : m_statusCode(StatusCode::OK) {}
 
   /// Constructs a status from the specified status code
-  Status(StatusCode rc) : m_statusCode(rc) {}
+  explicit Status(StatusCode rc) : m_statusCode(rc) {}
 
   /// Getter for the status code
   StatusCode code() const { return m_statusCode; }
@@ -33,8 +33,8 @@ class [[nodiscard]] Status final {
 template <typename T>
 class [[nodiscard]] StatusOr {
  public:
-  StatusOr(T value) : m_value(value), m_status(StatusCode::OK) {}
-  StatusOr(Status stat) : m_status(stat) {}
+  explicit StatusOr(T value) : m_value(value), m_status(StatusCode::OK) {}
+  explicit StatusOr(Status stat) : m_status(stat) {}
 
   T& value() { return m_value; }
   T const& value() const { return m_value; }
