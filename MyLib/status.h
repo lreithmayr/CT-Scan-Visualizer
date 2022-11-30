@@ -14,13 +14,16 @@ enum class StatusCode {
 
 class [[nodiscard]] Status final {
  public:
-  /// Default constructor initlaizes status as OK
+  /// Default constructor initializes status as OK
   Status() : m_statusCode(StatusCode::OK) {}
 
   /// Constructs a status from the specified status code
   Status(StatusCode rc) : m_statusCode(rc) {}
 
+  /// Getter for the status code
   StatusCode code() const { return m_statusCode; }
+
+  /// @return True if Status::OK, else False
   bool Ok() const { return (m_statusCode == StatusCode::OK); }
 
  private:
@@ -42,12 +45,6 @@ class [[nodiscard]] StatusOr {
  private:
   T m_value;
   Status m_status;
-};
-
-template <>
-class StatusOr<void> : public StatusOr<int> {
- public:
-  using StatusOr<int>::StatusOr;
 };
 
 #endif  // STATUS_H

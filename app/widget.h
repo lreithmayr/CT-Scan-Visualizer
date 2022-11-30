@@ -37,12 +37,10 @@ class Widget : public QWidget {
   int16_t *m_shaderBuffer{new int16_t[512 * 512]()};
 
  private slots:
-  void LoadImage();
   void LoadImage3D();
   void UpdateWindowingCenter(const int val);
   void UpdateWindowingWindowSize(const int val);
   void UpdateDepthValue(const int val);
   void UpdateThresholdValue(const int val);
-  void RenderDepthBuffer();
   void Render3D();
 };

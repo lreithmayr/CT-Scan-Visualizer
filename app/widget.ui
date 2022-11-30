@@ -29,19 +29,6 @@
     <string>TextLabel</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton_loadImage">
-   <property name="geometry">
-    <rect>
-     <x>30</x>
-     <y>20</y>
-     <width>88</width>
-     <height>27</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Load Image</string>
-   </property>
-  </widget>
   <widget class="QSlider" name="horizontalSlider_center">
    <property name="geometry">
     <rect>
@@ -115,7 +102,7 @@
   <widget class="QPushButton" name="pushButton_loadImage3D">
    <property name="geometry">
     <rect>
-     <x>140</x>
+     <x>180</x>
      <y>20</y>
      <width>141</width>
      <height>27</height>
@@ -195,19 +182,6 @@
     <string>TextLabel</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton_depthBuffer">
-   <property name="geometry">
-    <rect>
-     <x>620</x>
-     <y>90</y>
-     <width>131</width>
-     <height>27</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Create Depth Map</string>
-   </property>
-  </widget>
   <widget class="QLabel" name="label_image3D">
    <property name="geometry">
     <rect>
@@ -227,7 +201,7 @@
   <widget class="QPushButton" name="pushButton_render3D">
    <property name="geometry">
     <rect>
-     <x>820</x>
+     <x>760</x>
      <y>90</y>
      <width>171</width>
      <height>27</height>

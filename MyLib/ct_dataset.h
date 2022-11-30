@@ -23,6 +23,14 @@ class MYLIB_EXPORT CTDataset {
    */
   [[no_discard]] int16_t *data() const { return m_imageData; }
 
+  static StatusOr<int> WindowInputValue(const int &input_value, const int &center, const int &window_size);
+
+  static Status CalculateDepthBuffer(const int16_t *input_data, int16_t *output_buffer,
+									 int width, int height, int layers,
+									 int threshold);
+
+  static Status RenderDepthBuffer(int16_t const *depth_buffer, int16_t *output_buffer, int width, int height);
+
  private:
   int16_t *m_imageData{new int16_t[512 * 512 * 130]()};
 };
