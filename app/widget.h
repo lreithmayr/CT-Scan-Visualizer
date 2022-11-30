@@ -1,9 +1,9 @@
-#pragma once
+#ifndef WIDGET_H
+#define WIDGET_H
 
 #include "ct_dataset.h"
 
 #include <ui_widget.h>
-#include <mylib.h>
 
 #include <QFile>
 #include <QFileDialog>
@@ -41,3 +41,5 @@ class Widget : public QWidget {
   void UpdateThresholdValue(const int val);
   void Render3D();
 };
+
+#endif //WIDGET_H

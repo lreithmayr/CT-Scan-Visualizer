@@ -32,7 +32,6 @@ Status CTDataset::load(QString &img_path) {
 }
 
 /**
- * @details Provides access to the loaded image data
  * @return Pointer of type in16_t (short) to the image data array
  * @attention Null-checks and bounds-checks are the user's responsiblity
  */
@@ -40,6 +39,10 @@ int16_t *CTDataset::Data() const {
   return m_imgData;
 }
 
+/**
+ * @return Pointer of type int16_t to the 3d-rendered depth image buffer
+ * @attention Null-checks and bounds-checks are the user's responsiblity
+ */
 int16_t *CTDataset::RenderedDepthBuffer() const {
   return m_renderedDepthBuffer;
 }
