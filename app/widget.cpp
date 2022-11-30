@@ -36,8 +36,6 @@ Widget::Widget(QWidget *parent)
 
 Widget::~Widget() {
   delete ui;
-  delete[] m_depthBuffer;
-  delete[] m_shaderBuffer;
 }
 
 // Private member functions
@@ -48,7 +46,7 @@ void Widget::UpdateSliceView() {
 
   for (int y = 0; y < m_qImage.height(); ++y) {
 	for (int x = 0; x < m_qImage.width(); ++x) {
-	  int raw_value = m_ctimage.data()[x + (y * 512)];
+	  int raw_value = m_ctimage.Data()[x + (y * 512)];
 	  if (CTDataset::WindowInputValue(raw_value, center, window_size).Ok()) {
 		int windowed_value =
 		  CTDataset::WindowInputValue(raw_value, center, window_size).value();
@@ -69,7 +67,7 @@ void Widget::UpdateDepthImage() {
   for (int y = 0; y < m_qImage.height(); ++y) {
 	for (int x = 0; x < m_qImage.width(); ++x) {
 	  int raw_value =
-		m_ctimage.data()[(x + y * m_qImage.width()) +
+		m_ctimage.Data()[(x + y * m_qImage.width()) +
 		  (m_qImage.height() * m_qImage.width() * depth)];
 	  if (raw_value > threshold) {
 		m_qImage.setPixel(x, y, qRgb(255, 0, 0));
@@ -97,7 +95,6 @@ void Widget::LoadImage3D() {
 						  "The specified file could not be opened!");
 	return;
   }
-
   UpdateDepthImage();
 }
 
@@ -131,19 +128,14 @@ void Widget::Render3D() {
 	return;
   }
 
-  if (CTDataset::CalculateDepthBuffer(m_ctimage.data(), m_depthBuffer,
-									  m_qImage.width(), m_qImage.height(), 130,
-									  ui->horizontalSlider_threshold->value())
-	.Ok()) {
-	if (CTDataset::RenderDepthBuffer(m_depthBuffer, m_shaderBuffer,
-									 m_qImage.width(), m_qImage.height())
-	  .Ok()) {
+  if (m_ctimage.CalculateDepthBuffer(ui->horizontalSlider_threshold->value()).Ok()) {
+	if (m_ctimage.RenderDepthBuffer().Ok()) {
 	  for (int y = 0; y < m_qImage.height(); ++y) {
 		for (int x = 0; x < m_qImage.width(); ++x) {
 		  m_qImage.setPixel(x, y,
-							qRgb(m_shaderBuffer[x + y * m_qImage.width()],
-								 m_shaderBuffer[x + y * m_qImage.width()],
-								 m_shaderBuffer[x + y * m_qImage.width()]));
+							qRgb(m_ctimage.RenderedDepthBuffer()[x + y * m_qImage.width()],
+								 m_ctimage.RenderedDepthBuffer()[x + y * m_qImage.width()],
+								 m_ctimage.RenderedDepthBuffer()[x + y * m_qImage.width()]));
 		}
 		ui->label_image3D->setPixmap(QPixmap::fromImage(m_qImage));
 	  }

@@ -6,33 +6,35 @@
 #include "status.h"
 
 /**
- * @brief The CTDataset class contains the CT image data as provided by the ICOM file format
+ * @brief The CTDataset class contains the CT image Data as provided by the ICOM file format
  */
 
 class MYLIB_EXPORT CTDataset {
  public:
-  CTDataset() = default;
-  ~CTDataset() { delete[] m_imageData; }
+  CTDataset();
+  ~CTDataset() { delete[] m_imgData; }
 
-  /// Load CT image data from a specified path
+  /// Load CT image Data from a specified path
   Status load(QString &img_path);
 
-  /**
-   * @details Accessor for image data member variable.
-   * @return Pointer to the array of image data loaded in via load().
-   */
-  [[no_discard]] int16_t *data() const { return m_imageData; }
+  /// Return image Data
+  [[no_discard]] int16_t *Data() const;
+
+  [[nodiscard]] int16_t *RenderedDepthBuffer() const;
 
   static StatusOr<int> WindowInputValue(const int &input_value, const int &center, const int &window_size);
 
-  static Status CalculateDepthBuffer(const int16_t *input_data, int16_t *output_buffer,
-									 int width, int height, int layers,
-									 int threshold);
+  Status CalculateDepthBuffer(int threshold);
 
-  static Status RenderDepthBuffer(int16_t const *depth_buffer, int16_t *output_buffer, int width, int height);
+  Status RenderDepthBuffer();
 
  private:
-  int16_t *m_imageData{new int16_t[512 * 512 * 130]()};
+  int m_imgHeight;
+  int m_imgWidth;
+  int m_layers;
+  int16_t *m_imgData;
+  int16_t *m_depthBuffer;
+  int16_t *m_renderedDepthBuffer;
 };
 
 #endif  // CT_DATASET_H

@@ -33,9 +33,6 @@ class Widget : public QWidget {
   CTDataset m_ctimage;
   QImage m_qImage;
 
-  int16_t *m_depthBuffer{new int16_t[512 * 512]()};
-  int16_t *m_shaderBuffer{new int16_t[512 * 512]()};
-
  private slots:
   void LoadImage3D();
   void UpdateWindowingCenter(const int val);

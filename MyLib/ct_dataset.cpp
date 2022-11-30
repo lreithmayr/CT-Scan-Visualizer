@@ -1,5 +1,12 @@
 #include "ct_dataset.h"
 
+CTDataset::CTDataset() :
+  m_imgHeight(512),
+  m_imgWidth(512),
+  m_layers(130),
+  m_imgData(new int16_t[m_imgHeight * m_imgWidth * m_layers]),
+  m_depthBuffer(new int16_t[m_imgHeight * m_imgWidth]),
+  m_renderedDepthBuffer(new int16_t[m_imgHeight * m_imgWidth]) {}
 /**
  * @details Loads in an image file at the location specified via img_path
  * @param img_path The file path of the CT image.
@@ -12,10 +19,18 @@ Status CTDataset::load(QString &img_path) {
 	return Status(StatusCode::FOPEN_ERROR);
   }
 
-  img_file.read(reinterpret_cast<char *>(m_imageData),
-				512 * 512 * 130 * sizeof(int16_t));
+  img_file.read(reinterpret_cast<char *>(m_imgData),
+				m_imgHeight * m_imgWidth * m_layers * sizeof(int16_t));
   img_file.close();
   return Status(StatusCode::OK);
+}
+
+int16_t *CTDataset::Data() const {
+  return m_imgData;
+}
+
+int16_t *CTDataset::RenderedDepthBuffer() const {
+  return m_renderedDepthBuffer;
 }
 
 StatusOr<int> CTDataset::WindowInputValue(const int &input_value, const int &center, const int &window_size) {
@@ -45,34 +60,29 @@ StatusOr<int> CTDataset::WindowInputValue(const int &input_value, const int &cen
 	(255.0f / static_cast<float>(window_size)));
 }
 
-Status CTDataset::CalculateDepthBuffer(int16_t const *input_data,
-									   int16_t *output_buffer,
-									   int width,
-									   int height,
-									   int layers,
-									   int threshold) {
+Status CTDataset::CalculateDepthBuffer(int threshold) {
   int raw_value = 0;
-  for (int y = 0; y < height; ++y) {
-	for (int x = 0; x < width; ++x) {
-	  output_buffer[x + y * width] = layers;
-	  for (int d = 0; d < layers; ++d) {
-		raw_value = input_data[(x + y * width) + (height * width * d)];
+  for (int y = 0; y < m_imgHeight; ++y) {
+	for (int x = 0; x < m_imgWidth; ++x) {
+	  m_depthBuffer[x + y * m_imgWidth] = m_layers;
+	  for (int d = 0; d < m_layers; ++d) {
+		raw_value = m_imgData[(x + y * m_imgWidth) + (m_imgHeight * m_imgWidth * d)];
 		if (raw_value >= threshold) {
-		  output_buffer[x + y * width] = d;
+		  m_depthBuffer[x + y * m_imgWidth] = d;
 		  break;
 		}
 	  }
 	}
   }
 
-  if (output_buffer == nullptr) {
+  if (m_depthBuffer == nullptr) {
 	return Status(StatusCode::BUFFER_EMPTY);
   }
 
   return Status(StatusCode::OK);
 }
 
-Status CTDataset::RenderDepthBuffer(int16_t const *depth_buffer, int16_t *output_buffer, int width, int height) {
+Status CTDataset::RenderDepthBuffer() {
   auto s_x = 2;
   auto s_x_sq = s_x * s_x;
   auto s_y = 2;
@@ -87,22 +97,20 @@ Status CTDataset::RenderDepthBuffer(int16_t const *depth_buffer, int16_t *output
   float inv = 0;
   int I_ref = 0;
 
-  for (int y = 1; y < height - 1; ++y) {
-	for (int x = 1; x < width - 1; ++x) {
-	  T_x = (depth_buffer[(x + 1) + y * width] -
-		depth_buffer[(x - 1) + y * width]);
-	  T_y = (depth_buffer[x + (y + 1) * width] -
-		depth_buffer[x + (y - 1) * width]);
+  for (int y = 1; y < m_imgHeight - 1; ++y) {
+	for (int x = 1; x < m_imgWidth - 1; ++x) {
+	  T_x = m_depthBuffer[(x + 1) + y * m_imgWidth] - m_depthBuffer[(x - 1) + y * m_imgWidth];
+	  T_y = m_depthBuffer[x + (y + 1) * m_imgWidth] - m_depthBuffer[x + (y - 1) * m_imgWidth];
 	  syTx_sq = s_y_sq * T_x * T_x;
 	  sxTy_sq = s_x_sq * T_y * T_y;
 	  denom = std::sqrt(syTx_sq + sxTy_sq + s_pow_four);
 	  inv = 1 / denom;
 	  I_ref = nom * inv;
-	  output_buffer[x + y * width] = I_ref;
+	  m_renderedDepthBuffer[x + y * m_imgWidth] = I_ref;
 	}
   }
 
-  if (output_buffer == nullptr) {
+  if (m_renderedDepthBuffer == nullptr) {
 	return Status(StatusCode::BUFFER_EMPTY);
   }
 
