@@ -12,7 +12,7 @@
 class MYLIB_EXPORT CTDataset {
  public:
   CTDataset();
-  ~CTDataset() { delete[] m_imgData; }
+  ~CTDataset();
 
   /// Load CT image Data from a specified path
   Status load(QString &img_path);

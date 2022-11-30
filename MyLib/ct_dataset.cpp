@@ -7,6 +7,13 @@ CTDataset::CTDataset() :
   m_imgData(new int16_t[m_imgHeight * m_imgWidth * m_layers]),
   m_depthBuffer(new int16_t[m_imgHeight * m_imgWidth]),
   m_renderedDepthBuffer(new int16_t[m_imgHeight * m_imgWidth]) {}
+
+CTDataset::~CTDataset() {
+  delete[] m_imgData;
+  delete[] m_depthBuffer;
+  delete[] m_renderedDepthBuffer;
+}
+
 /**
  * @details Loads in an image file at the location specified via img_path
  * @param img_path The file path of the CT image.
