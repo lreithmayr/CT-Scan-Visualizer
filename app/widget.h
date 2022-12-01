@@ -27,11 +27,13 @@ class Widget : public QWidget {
  private:
   void UpdateSliceView();
   void UpdateDepthImage();
+  void Update3DRender();
 
  private:
   Ui::Widget *ui;
   CTDataset m_ctimage;
   QImage m_qImage;
+  bool m_render3dClicked;
 
  private slots:
   void LoadImage3D();

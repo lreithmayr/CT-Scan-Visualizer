@@ -5,7 +5,8 @@
 Widget::Widget(QWidget *parent)
   : QWidget(parent),
 	ui(new Ui::Widget),
-	m_qImage(QImage(512, 512, QImage::Format_RGB32)) {
+	m_qImage(QImage(512, 512, QImage::Format_RGB32)),
+	m_render3dClicked(false) {
   // Housekeeping
   ui->setupUi(this);
   m_qImage.fill(qRgb(0, 0, 0));
@@ -84,6 +85,22 @@ void Widget::UpdateDepthImage() {
   }
 }
 
+void Widget::Update3DRender() {
+  if (m_ctimage.CalculateDepthBuffer(ui->horizontalSlider_threshold->value()).Ok()) {
+	if (m_ctimage.RenderDepthBuffer().Ok()) {
+	  for (int y = 0; y < m_qImage.height(); ++y) {
+		for (int x = 0; x < m_qImage.width(); ++x) {
+		  m_qImage.setPixel(x, y,
+							qRgb(m_ctimage.RenderedDepthBuffer()[x + y * m_qImage.width()],
+								 m_ctimage.RenderedDepthBuffer()[x + y * m_qImage.width()],
+								 m_ctimage.RenderedDepthBuffer()[x + y * m_qImage.width()]));
+		}
+	  }
+	  ui->label_image3D->setPixmap(QPixmap::fromImage(m_qImage));
+	}
+  }
+}
+
 // Slots
 
 void Widget::LoadImage3D() {
@@ -116,29 +133,13 @@ void Widget::UpdateDepthValue(const int val) {
 void Widget::UpdateThresholdValue(const int val) {
   ui->label_sliderThreshold->setText("Threshold: " + QString::number(val));
   UpdateDepthImage();
+  if (m_render3dClicked) {
+	Update3DRender();
+  }
 }
 
 void Widget::Render3D() {
-  QString img_path = QFileDialog::getOpenFileName(
-	this, "Open Image", "../external/images", "Raw Image Files (*.raw)");
-
-  if (!m_ctimage.load(img_path).Ok()) {
-	QMessageBox::critical(this, "Error",
-						  "The specified file could not be opened!");
-	return;
-  }
-
-  if (m_ctimage.CalculateDepthBuffer(ui->horizontalSlider_threshold->value()).Ok()) {
-	if (m_ctimage.RenderDepthBuffer().Ok()) {
-	  for (int y = 0; y < m_qImage.height(); ++y) {
-		for (int x = 0; x < m_qImage.width(); ++x) {
-		  m_qImage.setPixel(x, y,
-							qRgb(m_ctimage.RenderedDepthBuffer()[x + y * m_qImage.width()],
-								 m_ctimage.RenderedDepthBuffer()[x + y * m_qImage.width()],
-								 m_ctimage.RenderedDepthBuffer()[x + y * m_qImage.width()]));
-		}
-		ui->label_image3D->setPixmap(QPixmap::fromImage(m_qImage));
-	  }
-	}
-  }
+  LoadImage3D();
+  Update3DRender();
+  m_render3dClicked = true;
 }
