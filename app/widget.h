@@ -25,7 +25,6 @@ class Widget : public QWidget {
   ~Widget() override;
 
  private:
-  void UpdateSliceView();
   void UpdateDepthImage();
   void Update3DRender();
 

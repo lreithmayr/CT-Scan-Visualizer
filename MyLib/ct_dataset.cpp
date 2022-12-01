@@ -17,7 +17,7 @@ CTDataset::~CTDataset() {
 /**
  * @details Loads in an image file at the location specified via img_path
  * @param img_path The file path of the CT image.
- * @return ErrorOr type. If loading was successful, ReturnCode::OK will be returned, else ReturnCode::FOPEN_ERROR.
+ * @return Status. If loading was successful, StatusCode::OK will be returned, else StatusCode::FOPEN_ERROR.
  */
 Status CTDataset::load(QString &img_path) {
   QFile img_file(img_path);
@@ -33,7 +33,7 @@ Status CTDataset::load(QString &img_path) {
 
 /**
  * @return Pointer of type in16_t (short) to the image data array
- * @attention Null-checks and bounds-checks are the user's responsiblity
+ * @attention Null-checks and bounds-checks are caller's responsiblity
  */
 int16_t *CTDataset::Data() const {
   return m_imgData;
@@ -41,12 +41,20 @@ int16_t *CTDataset::Data() const {
 
 /**
  * @return Pointer of type int16_t to the 3d-rendered depth image buffer
- * @attention Null-checks and bounds-checks are the user's responsiblity
+ * @attention Null-checks and bounds-checks are caller's responsiblity
  */
 int16_t *CTDataset::RenderedDepthBuffer() const {
   return m_renderedDepthBuffer;
 }
 
+/**
+ * @details
+ * @param input_value The HU value read from the corresponding CT image pixel
+ * @param center The center of the range window
+ * @param window_size The size of the range window in which to normalize the HU values
+ * @return StatusOr<int> depending on the error. Handles out-of-range HU values, center values and window sizes. If
+ * no error occured, the windowed HU value cast to an integer will be returned
+ */
 StatusOr<int> CTDataset::WindowInputValue(const int &input_value, const int &center, const int &window_size) {
   if ((input_value < -1024) || (input_value > 3071)) {
 	return StatusOr<int>(Status(StatusCode::HU_OUT_OF_RANGE));
@@ -73,6 +81,11 @@ StatusOr<int> CTDataset::WindowInputValue(const int &input_value, const int &cen
   return StatusOr<int>(std::roundf((input_value - lower_bound) * (255.0f / static_cast<float>(window_size))));
 }
 
+/**
+ *
+ * @param threshold
+ * @return
+ */
 Status CTDataset::CalculateDepthBuffer(int threshold) {
   int raw_value = 0;
   for (int y = 0; y < m_imgHeight; ++y) {
@@ -95,6 +108,10 @@ Status CTDataset::CalculateDepthBuffer(int threshold) {
   return Status(StatusCode::OK);
 }
 
+/**
+ *
+ * @return
+ */
 Status CTDataset::RenderDepthBuffer() {
   auto s_x = 2;
   auto s_x_sq = s_x * s_x;

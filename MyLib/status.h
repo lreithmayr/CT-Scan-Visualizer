@@ -1,8 +1,6 @@
 #ifndef STATUS_H
 #define STATUS_H
 
-#include "MyLib_global.h"
-
 enum class StatusCode {
   OK,
   HU_OUT_OF_RANGE,

@@ -5,6 +5,8 @@
 
 #include <QFile>
 
+#include<cmath>
+
 /**
  * @brief The CTDataset class is the central class to initialize and process CT scan images.
  * @details
@@ -12,7 +14,7 @@
  * rendering 3D representations of the image data.
  */
 
-class MYLIB_EXPORT CTDataset {
+class CTDataset {
  public:
   CTDataset();
   ~CTDataset();
@@ -21,7 +23,7 @@ class MYLIB_EXPORT CTDataset {
   Status load(QString &img_path);
 
   /// Get a pointer to the image data
-  [[no_discard]] int16_t *Data() const;
+  [[nodiscard]] int16_t *Data() const;
 
   /// Get a pointer to the 3D rendered image buffer
   [[nodiscard]] int16_t *RenderedDepthBuffer() const;

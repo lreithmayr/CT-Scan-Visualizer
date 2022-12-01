@@ -41,24 +41,6 @@ Widget::~Widget() {
 
 // Private member functions
 
-void Widget::UpdateSliceView() {
-  int center = ui->horizontalSlider_center->value();
-  int window_size = ui->horizontalSlider_windowSize->value();
-
-  for (int y = 0; y < m_qImage.height(); ++y) {
-	for (int x = 0; x < m_qImage.width(); ++x) {
-	  int raw_value = m_ctimage.Data()[x + (y * 512)];
-	  if (CTDataset::WindowInputValue(raw_value, center, window_size).Ok()) {
-		int windowed_value =
-		  CTDataset::WindowInputValue(raw_value, center, window_size).value();
-		m_qImage.setPixel(x, y,
-						  qRgb(windowed_value, windowed_value, windowed_value));
-	  }
-	}
-  }
-  ui->label_imgArea->setPixmap(QPixmap::fromImage(m_qImage));
-}
-
 void Widget::UpdateDepthImage() {
   int depth = ui->verticalSlider_depth->value();
   int threshold = ui->horizontalSlider_threshold->value();
@@ -81,24 +63,23 @@ void Widget::UpdateDepthImage() {
 						  qRgb(windowed_value, windowed_value, windowed_value));
 	  }
 	}
-	ui->label_imgArea->setPixmap(QPixmap::fromImage(m_qImage));
   }
+  ui->label_imgArea->setPixmap(QPixmap::fromImage(m_qImage));
 }
 
 void Widget::Update3DRender() {
   if (m_ctimage.CalculateDepthBuffer(ui->horizontalSlider_threshold->value()).Ok()) {
 	if (m_ctimage.RenderDepthBuffer().Ok()) {
+	  auto val = 0;
 	  for (int y = 0; y < m_qImage.height(); ++y) {
 		for (int x = 0; x < m_qImage.width(); ++x) {
-		  m_qImage.setPixel(x, y,
-							qRgb(m_ctimage.RenderedDepthBuffer()[x + y * m_qImage.width()],
-								 m_ctimage.RenderedDepthBuffer()[x + y * m_qImage.width()],
-								 m_ctimage.RenderedDepthBuffer()[x + y * m_qImage.width()]));
+		  val = m_ctimage.RenderedDepthBuffer()[x + y * m_qImage.width()];
+		  m_qImage.setPixel(x, y,qRgb(val, val, val));
 		}
 	  }
-	  ui->label_image3D->setPixmap(QPixmap::fromImage(m_qImage));
 	}
   }
+  ui->label_image3D->setPixmap(QPixmap::fromImage(m_qImage));
 }
 
 // Slots
