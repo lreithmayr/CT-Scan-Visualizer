@@ -15,9 +15,9 @@ CTDataset::~CTDataset() {
 }
 
 /**
- * @details Loads in an image file at the location specified via img_path
+ * @details File location is specified via a GUI window selection
  * @param img_path The file path of the CT image.
- * @return Status. If loading was successful, StatusCode::OK will be returned, else StatusCode::FOPEN_ERROR.
+ * @return StatusCode::OK if loading was succesfull, else StatusCode::FOPEN_ERROR.
  */
 Status CTDataset::load(QString &img_path) {
   QFile img_file(img_path);
@@ -48,11 +48,14 @@ int16_t *CTDataset::RenderedDepthBuffer() const {
 }
 
 /**
- * @details
+ * @details Windowing maps a desired slice of the raw grey values (in Hounsfield Units) to a an RGB scale from 0 to
+ * \255. This makes it possible to highlight regions of interest such as bone, organ tissue or soft tissue which all
+ * have a distinct range of HU values.
  * @param input_value The HU value read from the corresponding CT image pixel
  * @param center The center of the range window
  * @param window_size The size of the range window in which to normalize the HU values
- * @return StatusOr<int> depending on the error. Handles out-of-range HU values, center values and window sizes. If
+ * @return StatusOr<int> depending on the error. Handles out-of-range HU values, center values and
+ * window sizes. If
  * no error occured, the windowed HU value cast to an integer will be returned
  */
 StatusOr<int> CTDataset::WindowInputValue(const int &input_value, const int &center, const int &window_size) {
@@ -82,17 +85,18 @@ StatusOr<int> CTDataset::WindowInputValue(const int &input_value, const int &cen
 }
 
 /**
- *
- * @param threshold
- * @return
+ * @details The calculation is accomplished by traversing all image layers for each pixel. If a pixel with an HU
+ * value greater than a chosen threshold is reached, its depth value (the number of layer the pixel is on) is written
+ * to a buffer. If no value greater than the threshold value was encountered, the maximum depth value is written to
+ * the buffer.
+ * @param threshold Pixel grey value (HU value) above which the depth value will be buffered.
+ * @return StatusCode::OK if the result buffer is not empty, else StatusCode::BUFFER_EMPTY
  */
 Status CTDataset::CalculateDepthBuffer(int threshold) {
   int raw_value = 0;
   for (int y = 0; y < m_imgHeight; ++y) {
 	for (int x = 0; x < m_imgWidth; ++x) {
-	  m_depthBuffer[x + y * m_imgWidth] = m_layers;
-	  for (int d = 0; d < m_layers; ++d) {
-		raw_value = m_imgData[(x + y * m_imgWidth) + (m_imgHeight * m_imgWidth * d)];
+	  m_depthBuffer[x + y * m_imgWidth] = m_layers; for (int d = 0; d < m_layers; ++d) { raw_value = m_imgData[(x + y * m_imgWidth) + (m_imgHeight * m_imgWidth * d)];
 		if (raw_value >= threshold) {
 		  m_depthBuffer[x + y * m_imgWidth] = d;
 		  break;
@@ -109,8 +113,11 @@ Status CTDataset::CalculateDepthBuffer(int threshold) {
 }
 
 /**
- *
- * @return
+ * @details The 3D image is rendered by computing the depth-value gradient in x and y for each pixel (in essence,
+ * computing the dot product). The step-size
+ * of the algorithm is two, i.e. each pixel is compared to it's left and right as well as it's above and below
+ * neighbor. The result is then normalized, multiplied by 255 to yield a valid RGB value and written to an ouput buffer.
+ * @return StatusCode::OK if the result buffer is not empty, else StatusCode::BUFFER_EMPTY
  */
 Status CTDataset::RenderDepthBuffer() {
   auto s_x = 2;
