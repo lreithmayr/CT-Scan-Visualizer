@@ -65,17 +65,17 @@ void MyLibUnitTest::WindowingTest() {
   QVERIFY2(retCode == StatusCode::CENTER_OUT_OF_RANGE,
 		   "No error code returned although center value was < -1024");
 
-  // INVALID case 3: Center value too high
+  // INVALID case 4: Center value too high
   retCode = CTDataset::WindowInputValue(400, 3500, 2000).status().code();
   QVERIFY2(retCode == StatusCode::CENTER_OUT_OF_RANGE,
 		   "No error code returned although center value was > 3071");
 
-  // INVALID case 3: Window size too low
+  // INVALID case 5: Window size too low
   retCode = CTDataset::WindowInputValue(400, -1000, 0).status().code();
   QVERIFY2(retCode == StatusCode::WIDTH_OUT_OF_RANGE,
 		   "No error code returned although center value was < 1");
 
-  // INVALID case 3: Window size too high
+  // INVALID case 6: Window size too high
   retCode = CTDataset::WindowInputValue(400, -1000, 5000).status().code();
   QVERIFY2(retCode == StatusCode::WIDTH_OUT_OF_RANGE,
 		   "No error code returned although center value was > 4095");
