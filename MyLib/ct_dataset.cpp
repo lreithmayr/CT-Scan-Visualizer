@@ -63,12 +63,12 @@ StatusOr<int> CTDataset::WindowInputValue(const int &input_value, const int &cen
 	return StatusOr<int>(Status(StatusCode::HU_OUT_OF_RANGE));
   }
 
-  if ((window_size < 1) || (window_size > 4095)) {
-	return StatusOr<int>(Status(StatusCode::WIDTH_OUT_OF_RANGE));
-  }
-
   if ((center < -1024) || (center > 3071)) {
 	return StatusOr<int>(Status(StatusCode::CENTER_OUT_OF_RANGE));
+  }
+
+  if ((window_size < 1) || (window_size > 4095)) {
+	return StatusOr<int>(Status(StatusCode::WIDTH_OUT_OF_RANGE));
   }
 
   float half_window_size = 0.5f * static_cast<float>(window_size);
