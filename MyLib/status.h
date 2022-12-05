@@ -5,10 +5,9 @@
 // yet.
 
 /**
- * @brief The StatusCode enum holds a collection of status and/or error codes
+ * @brief Holds a collection of status and/or error codes
  * that can be returned by functions upon failure
  */
-
 enum class StatusCode {
   /// The operation was performed without error
   OK,
@@ -25,10 +24,10 @@ enum class StatusCode {
 };
 
 /**
- * @brief The Status class represents a StatusCode and is meant for use in
- * return types
- * The whole class is [[nodiscard]], so the error
- * must be used by the caller.
+ * @brief Represents a StatusCode and is meant for use as a
+ * return type
+ * @details The whole class is [[nodiscard]], so the error
+ * must be used by the caller
  */
 class [[nodiscard]] Status final {
  public:
@@ -49,8 +48,8 @@ class [[nodiscard]] Status final {
 };
 
 /**
- * @brief The StatusOr class can be used when a function returns either
- * an error or a return value. It is constructed either with a return value of
+ * @brief Holds either an error or a return value
+ * @details It is constructed either with a return value of
  * generic type T OR with a Status and holds either of the two, never both at
  * once.
  * The whole class is [[nodiscard]], so either the return value or the error
@@ -61,12 +60,21 @@ class [[nodiscard]] StatusOr {
  public:
   /// Holds a return value (generic over T) in case of success.
   explicit StatusOr(T value) : m_value(value), m_status(StatusCode::OK) {}
-  /// Holds a Status as defined above in case of failure.
-  explicit StatusOr(Status stat) : m_status(stat) {}
+  /// Holds a Status in case of failure.
+  explicit StatusOr(Status stat)
+      : m_status(stat) {}  // FIXME: Initialize the value as empty (or as some
+                           // type that signifies empty)
 
+  /// @returns Reference to a value if no error is present.
   T &value() { return m_value; }
-  T const &value() const { return m_value; }
+
+  /// @returns Constant reference to a value if no error is present.
+  T const &value() const { return m_value; }  // FIXME: Check if value exists before returning
+
+  /// @returns Reference to an error.
   Status &status() { return m_status; }
+
+  /// @returns Constant reference to an error.
   Status const &status() const { return m_status; }
 
   /// @returns True if StatusCode::OK, false otherwise.
