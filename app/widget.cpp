@@ -71,6 +71,35 @@ void Widget::UpdateDepthImage() {
   ui->label_imgArea->setPixmap(QPixmap::fromImage(m_qImage));
 }
 
+void Widget::UpdateDepthImageFromCursor(int depth, int cursor_x, int cursor_y) {
+  int threshold = ui->horizontalSlider_threshold->value();
+  int center = ui->horizontalSlider_center->value();
+  int window_size = ui->horizontalSlider_windowSize->value();
+
+  for (int y = 0; y < m_qImage.height(); ++y) {
+	for (int x = 0; x < m_qImage.width(); ++x) {
+	  int raw_value =
+		m_ctimage.Data()[(x + y * m_qImage.width()) +
+		  (m_qImage.height() * m_qImage.width() * depth)];
+	  if (raw_value > threshold) {
+		m_qImage.setPixel(x, y, qRgb(255, 0, 0));
+		continue;
+	  }
+	  if (CTDataset::WindowInputValue(raw_value, center, window_size).Ok()) {
+		int windowed_value =
+		  CTDataset::WindowInputValue(raw_value, center, window_size).value();
+		m_qImage.setPixel(x, y,
+						  qRgb(windowed_value, windowed_value, windowed_value));
+	  }
+	}
+  }
+  QPainter painter(&m_qImage);
+  painter.setPen(Qt::green);
+  painter.drawText(cursor_x, cursor_y, "X");
+
+  ui->label_imgArea->setPixmap(QPixmap::fromImage(m_qImage));
+}
+
 void Widget::Update3DRender() {
   if (m_ctimage.CalculateDepthBuffer(ui->horizontalSlider_threshold->value()).Ok()) {
 	if (m_ctimage.RenderDepthBuffer().Ok()) {
@@ -139,7 +168,7 @@ void Widget::mousePressEvent(QMouseEvent *event) {
 	ui->label_yPos->setText("Y: " + QString::number(local_pos.y()));
 
 	if (m_depthBufferIsRendered) {
-	  int depth_at_cursor = m_ctimage.GetDepthBuffer()[local_pos.x() + local_pos.y() * m_qImage.width()];
+	  int depth_at_cursor = m_ctimage.GetDepthBuffer()[local_pos.x() + local_pos.y() * m_qImage.width()] - 1;
 	  ui->label_depthPos->setText("Depth: " + QString::number(depth_at_cursor));
 	}
   }
@@ -155,8 +184,9 @@ void Widget::mouseMoveEvent(QMouseEvent *event) {
 	  ui->label_yPos->setText("Y: " + QString::number(local_pos.y()));
 
 	  if (m_depthBufferIsRendered) {
-		int depth_at_cursor = m_ctimage.GetDepthBuffer()[local_pos.x() + local_pos.y() * m_qImage.width()];
+		int depth_at_cursor = m_ctimage.GetDepthBuffer()[local_pos.x() + local_pos.y() * m_qImage.width()] - 1;
 		ui->label_depthPos->setText("Depth: " + QString::number(depth_at_cursor));
+		UpdateDepthImageFromCursor(depth_at_cursor, local_pos.x(), local_pos.y());
 	  }
 	}
   }

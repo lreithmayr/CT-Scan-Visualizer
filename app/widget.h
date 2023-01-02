@@ -10,6 +10,7 @@
 #include <QMessageBox>
 #include <QWidget>
 #include <QMouseEvent>
+#include <QPainter>
 
 #include <iostream>
 
@@ -28,6 +29,7 @@ class Widget : public QWidget {
 
  private:
   void UpdateDepthImage();
+  void UpdateDepthImageFromCursor(int depth, int cursor_x, int cursor_y);
   void Update3DRender();
 
  private:
