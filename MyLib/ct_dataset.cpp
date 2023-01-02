@@ -3,7 +3,7 @@
 CTDataset::CTDataset() :
   m_imgHeight(512),
   m_imgWidth(512),
-  m_layers(130),
+  m_layers(256),
   m_imgData(new int16_t[m_imgHeight * m_imgWidth * m_layers]),
   m_depthBuffer(new int16_t[m_imgHeight * m_imgWidth]),
   m_renderedDepthBuffer(new int16_t[m_imgHeight * m_imgWidth]) {}

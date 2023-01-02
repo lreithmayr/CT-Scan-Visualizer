@@ -164,12 +164,22 @@ void Widget::mousePressEvent(QMouseEvent *event) {
   QPoint local_pos = ui->label_image3D->mapFromParent(global_pos);
 
   if (ui->label_image3D->rect().contains(local_pos)) {
-	ui->label_xPos->setText("X: " + QString::number(local_pos.x()));
-	ui->label_yPos->setText("Y: " + QString::number(local_pos.y()));
+	auto cursor_x_px = local_pos.x();
+	auto cursor_x_mm = cursor_x_px * 0.523; // Pixel x position * Voxel length in x
+
+	auto cursor_y_px = local_pos.y();
+	auto cursor_y_mm = cursor_y_px * 0.523; // Pixel y position * Voxel length in y
+
+	ui->label_xPos->setText("X [px]: " + QString::number(cursor_x_px));
+	ui->label_xPos_mm->setText("X [mm]: " + QString::number(cursor_x_mm));
+	ui->label_yPos->setText("Y [px]: " + QString::number(cursor_y_px));
+	ui->label_yPos_mm->setText("Y [mm]: " + QString::number(cursor_y_mm));
 
 	if (m_depthBufferIsRendered) {
 	  int depth_at_cursor = m_ctimage.GetDepthBuffer()[local_pos.x() + local_pos.y() * m_qImage.width()] - 1;
-	  ui->label_depthPos->setText("Depth: " + QString::number(depth_at_cursor));
+	  auto depth_mm = depth_at_cursor * 0.7; // Depth value * Voxel height
+	  ui->label_depthPos->setText("Depth [px]: " + QString::number(depth_at_cursor));
+	  ui->label_depthPos_mm->setText("Depth [mm]: " + QString::number(depth_mm));
 	}
   }
 }
@@ -180,12 +190,12 @@ void Widget::mouseMoveEvent(QMouseEvent *event) {
 	QPoint local_pos = ui->label_image3D->mapFromParent(global_pos);
 
 	if (ui->label_image3D->rect().contains(local_pos)) {
-	  ui->label_xPos->setText("X: " + QString::number(local_pos.x()));
-	  ui->label_yPos->setText("Y: " + QString::number(local_pos.y()));
+	  // ui->label_xPos->setText("X: " + QString::number(local_pos.x()));
+	  // ui->label_yPos->setText("Y: " + QString::number(local_pos.y()));
 
 	  if (m_depthBufferIsRendered) {
 		int depth_at_cursor = m_ctimage.GetDepthBuffer()[local_pos.x() + local_pos.y() * m_qImage.width()] - 1;
-		ui->label_depthPos->setText("Depth: " + QString::number(depth_at_cursor));
+		// ui->label_depthPos->setText("Depth: " + QString::number(depth_at_cursor));
 		UpdateDepthImageFromCursor(depth_at_cursor, local_pos.x(), local_pos.y());
 	  }
 	}
