@@ -38,6 +38,13 @@ Status CTDataset::load(QString &img_path) {
 int16_t *CTDataset::Data() const {
   return m_imgData;
 }
+/**
+ * @return Pointer of type int16_t to the non-3D rendered depth buffer
+ * @attention Null-checks and bounds-checks are caller's responsiblity
+ */
+int16_t *CTDataset::GetDepthBuffer() const {
+  return m_depthBuffer;
+}
 
 /**
  * @return Pointer of type int16_t to the 3d-rendered depth image buffer
@@ -96,7 +103,9 @@ Status CTDataset::CalculateDepthBuffer(int threshold) {
   int raw_value = 0;
   for (int y = 0; y < m_imgHeight; ++y) {
 	for (int x = 0; x < m_imgWidth; ++x) {
-	  m_depthBuffer[x + y * m_imgWidth] = m_layers; for (int d = 0; d < m_layers; ++d) { raw_value = m_imgData[(x + y * m_imgWidth) + (m_imgHeight * m_imgWidth * d)];
+	  m_depthBuffer[x + y * m_imgWidth] = m_layers;
+	  for (int d = 0; d < m_layers; ++d) {
+		raw_value = m_imgData[(x + y * m_imgWidth) + (m_imgHeight * m_imgWidth * d)];
 		if (raw_value >= threshold) {
 		  m_depthBuffer[x + y * m_imgWidth] = d;
 		  break;

@@ -21,7 +21,7 @@ class MyLibUnitTest : public QObject {
  erlaubten Grenzen einmal nennen
  */
 void MyLibUnitTest::WindowingTest() {
-  StatusCode retCode;
+  StatusCode retCode = StatusCode::OK;
 
   // VALID case 1: Testing clean zero for bottom HU boundary
   int greyValue = 0;

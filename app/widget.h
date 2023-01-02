@@ -9,6 +9,8 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QWidget>
+#include <QMouseEvent>
+
 #include <iostream>
 
 QT_BEGIN_NAMESPACE
@@ -33,6 +35,7 @@ class Widget : public QWidget {
   CTDataset m_ctimage;
   QImage m_qImage;
   bool m_render3dClicked;
+  bool m_depthBufferIsRendered {false};
 
  private slots:
   void LoadImage3D();
@@ -41,6 +44,7 @@ class Widget : public QWidget {
   void UpdateDepthValue(const int val);
   void UpdateThresholdValue(const int val);
   void Render3D();
+  void mousePressEvent(QMouseEvent *event) override;
 };
 
 #endif //WIDGET_H

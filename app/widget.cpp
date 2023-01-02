@@ -123,4 +123,20 @@ void Widget::Render3D() {
   LoadImage3D();
   Update3DRender();
   m_render3dClicked = true;
+  m_depthBufferIsRendered = true;
+}
+
+void Widget::mousePressEvent(QMouseEvent *event) {
+  QPoint global_pos = event->pos();
+  QPoint local_pos = ui->label_image3D->mapFromParent(global_pos);
+
+  if (ui->label_image3D->rect().contains(local_pos)) {
+	ui->label_xPos->setText("X: " + QString::number(local_pos.x()));
+	ui->label_yPos->setText("Y: " + QString::number(local_pos.y()));
+
+	if (m_depthBufferIsRendered) {
+	  int depth_at_cursor = m_ctimage.GetDepthBuffer()[local_pos.x() + local_pos.y() * m_qImage.width()];
+	  ui->label_depthPos->setText("Depth: " + QString::number(depth_at_cursor));
+	}
+  }
 }
