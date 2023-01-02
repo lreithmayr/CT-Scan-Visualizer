@@ -20,7 +20,7 @@ class Widget;
 QT_END_NAMESPACE
 
 class Widget : public QWidget {
-  Q_OBJECT
+ Q_OBJECT
 
  public:
   explicit Widget(QWidget *parent = nullptr);
@@ -35,7 +35,7 @@ class Widget : public QWidget {
   CTDataset m_ctimage;
   QImage m_qImage;
   bool m_render3dClicked;
-  bool m_depthBufferIsRendered {false};
+  bool m_depthBufferIsRendered{false};
 
  private slots:
   void LoadImage3D();
@@ -45,6 +45,7 @@ class Widget : public QWidget {
   void UpdateThresholdValue(const int val);
   void Render3D();
   void mousePressEvent(QMouseEvent *event) override;
+  void mouseMoveEvent(QMouseEvent *event) override;
 };
 
 #endif //WIDGET_H

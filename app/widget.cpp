@@ -11,6 +11,10 @@ Widget::Widget(QWidget *parent)
   ui->setupUi(this);
   m_qImage.fill(qRgb(0, 0, 0));
 
+  // Activate mouse tracking
+  setMouseTracking(true);
+  ui->label_image3D->setMouseTracking(true);
+
   // Buttons
   connect(ui->pushButton_loadImage3D, SIGNAL(clicked()), this,
 		  SLOT(LoadImage3D()));
@@ -74,7 +78,7 @@ void Widget::Update3DRender() {
 	  for (int y = 0; y < m_qImage.height(); ++y) {
 		for (int x = 0; x < m_qImage.width(); ++x) {
 		  val = m_ctimage.RenderedDepthBuffer()[x + y * m_qImage.width()];
-		  m_qImage.setPixel(x, y,qRgb(val, val, val));
+		  m_qImage.setPixel(x, y, qRgb(val, val, val));
 		}
 	  }
 	}
@@ -137,6 +141,23 @@ void Widget::mousePressEvent(QMouseEvent *event) {
 	if (m_depthBufferIsRendered) {
 	  int depth_at_cursor = m_ctimage.GetDepthBuffer()[local_pos.x() + local_pos.y() * m_qImage.width()];
 	  ui->label_depthPos->setText("Depth: " + QString::number(depth_at_cursor));
+	}
+  }
+}
+
+void Widget::mouseMoveEvent(QMouseEvent *event) {
+  if (m_render3dClicked) {
+	QPoint global_pos = event->pos();
+	QPoint local_pos = ui->label_image3D->mapFromParent(global_pos);
+
+	if (ui->label_image3D->rect().contains(local_pos)) {
+	  ui->label_xPos->setText("X: " + QString::number(local_pos.x()));
+	  ui->label_yPos->setText("Y: " + QString::number(local_pos.y()));
+
+	  if (m_depthBufferIsRendered) {
+		int depth_at_cursor = m_ctimage.GetDepthBuffer()[local_pos.x() + local_pos.y() * m_qImage.width()];
+		ui->label_depthPos->setText("Depth: " + QString::number(depth_at_cursor));
+	  }
 	}
   }
 }

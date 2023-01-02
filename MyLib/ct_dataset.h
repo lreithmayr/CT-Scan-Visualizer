@@ -26,7 +26,7 @@ class CTDataset {
   [[nodiscard]] int16_t *Data() const;
 
   /// Get a pointer to the non-3D rendered depth buffer
-  [[nodiscar]] int16_t *GetDepthBuffer() const;
+  [[nodiscard]] int16_t *GetDepthBuffer() const;
 
   /// Get a pointer to the 3D rendered image buffer
   [[nodiscard]] int16_t *RenderedDepthBuffer() const;
