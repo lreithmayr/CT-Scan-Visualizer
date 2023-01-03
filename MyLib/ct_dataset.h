@@ -2,10 +2,13 @@
 #define CT_DATASET_H
 
 #include "status.h"
+#include "Eigen/Core"
+#include "Eigen/Dense"
 
 #include <QFile>
 
-#include<cmath>
+#include <vector>
+#include <cmath>
 
 /**
  * @brief The CTDataset class is the central class to initialize and process CT scan images.
@@ -40,6 +43,12 @@ class CTDataset {
   /// Render a shaded 3D image from the depth buffer
   Status RenderDepthBuffer();
 
+  /// Threshold-based region growing algorithm for CT image segmentation
+  StatusOr<std::vector<Eigen::Vector3i>> RegionGrowing(Eigen::Vector3i &seed, int threshold);
+
+  ///
+  static std::vector<Eigen::Vector3i>& CalculateNeighbours(Eigen::Vector3i &point);
+
  private:
   /// Height of the provided CT image (in pixels)
   int m_imgHeight;
@@ -58,6 +67,9 @@ class CTDataset {
 
   /// Buffer for the rendered image
   int16_t *m_renderedDepthBuffer;
+
+  /// Buffer for the region growing image
+  int16_t *m_regionGrowingBuffer;
 };
 
 #endif  // CT_DATASET_H

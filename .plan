@@ -1,0 +1,22 @@
+=== REGION GROWING ALGORITHM ===
+
+algorithm region-growing is
+    input: i by j by l array of grayscale values G,
+           seed location S in R³,
+           threshold value T
+    output: i by j array containing grayscale values > threshold
+
+    let L = region
+    choose arbitrary S
+
+    for each adjacent voxel V to S do
+        if G > T
+            add V to L
+
+    while there are unchecked pixels remaining do
+        for each voxel in L
+            for each adjacent voxel V
+                if V is in L
+                    continue
+                if G > T
+                    add to L

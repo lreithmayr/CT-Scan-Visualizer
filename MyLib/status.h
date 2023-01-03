@@ -20,7 +20,11 @@ enum class StatusCode {
   /// Buffers: The buffer that is returned by the function is empty
   BUFFER_EMPTY,
   /// Files: Could not open file
-  FOPEN_ERROR
+  FOPEN_ERROR,
+  /// Eigen: Vector3i doesn't have three elements
+  EIGEN_VEC_SIZE_ERROR,
+  /// Seed with no neighbours above the threshold value was chosen
+  BAD_SEED_ERROR
 };
 
 /**

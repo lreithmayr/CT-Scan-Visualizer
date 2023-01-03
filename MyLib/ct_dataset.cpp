@@ -6,12 +6,14 @@ CTDataset::CTDataset() :
   m_layers(256),
   m_imgData(new int16_t[m_imgHeight * m_imgWidth * m_layers]),
   m_depthBuffer(new int16_t[m_imgHeight * m_imgWidth]),
-  m_renderedDepthBuffer(new int16_t[m_imgHeight * m_imgWidth]) {}
+  m_renderedDepthBuffer(new int16_t[m_imgHeight * m_imgWidth]),
+  m_regionGrowingBuffer(new int16_t[m_imgHeight * m_imgWidth * m_layers]) {}
 
 CTDataset::~CTDataset() {
   delete[] m_imgData;
   delete[] m_depthBuffer;
   delete[] m_renderedDepthBuffer;
+  delete[] m_regionGrowingBuffer;
 }
 
 /**
@@ -159,6 +161,59 @@ Status CTDataset::RenderDepthBuffer() {
   if (m_renderedDepthBuffer == nullptr) {
 	return Status(StatusCode::BUFFER_EMPTY);
   }
-
   return Status(StatusCode::OK);
+}
+
+StatusOr<std::vector<Eigen::Vector3i>> CTDataset::RegionGrowing(Eigen::Vector3i &seed, int threshold) {
+  if (seed.size() != 3) {
+	return StatusOr<std::vector<Eigen::Vector3i>>(Status(StatusCode::EIGEN_VEC_SIZE_ERROR));
+  }
+
+  std::vector<Eigen::Vector3i> region;
+
+  std::vector<Eigen::Vector3i> initial_neighbours = CalculateNeighbours(seed);
+  for (auto const &n : initial_neighbours) {
+	if (m_imgData[(n.x() + n.y() * m_imgWidth) + (m_imgHeight * m_imgWidth * n.z())] > threshold) {
+	  region.push_back(n);
+	} else {
+	  return StatusOr<std::vector<Eigen::Vector3i>>(Status(StatusCode::BAD_SEED_ERROR));
+	}
+  }
+
+  while (true) {
+	for (auto &pt : region) {
+	  std::vector<Eigen::Vector3i> neighbours = CalculateNeighbours(pt);
+	  for (auto &nb : neighbours) {
+		if (std::find(region.begin(), region.end(), nb) != region.end()) {
+		  continue;
+		} else {
+		  if (m_imgData[(nb.x() + nb.y() * m_imgWidth) + (m_imgHeight * m_imgWidth * nb.z())] > threshold) {
+			region.push_back(nb);
+		  }
+		}
+	  }
+	}
+
+	return StatusOr<std::vector<Eigen::Vector3i>>(region);
+  }
+}
+
+std::vector<Eigen::Vector3i> &CTDataset::CalculateNeighbours(Eigen::Vector3i &point) {
+  std::vector<Eigen::Vector3i> neighbours;
+
+  Eigen::Vector3i n_left = Eigen::Vector3i(point.x() - 1, point.y(), point.z());
+  Eigen::Vector3i n_right = Eigen::Vector3i(point.x() - 1, point.y(), point.z());
+  Eigen::Vector3i n_up = Eigen::Vector3i(point.x(), point.y() + 1, point.z());
+  Eigen::Vector3i n_down = Eigen::Vector3i(point.x(), point.y() - 1, point.z());
+  Eigen::Vector3i n_above = Eigen::Vector3i(point.x(), point.y(), point.z() + 1);
+  Eigen::Vector3i n_below = Eigen::Vector3i(point.x(), point.y(), point.z() - 1);
+
+  neighbours.push_back(n_left);
+  neighbours.push_back(n_right);
+  neighbours.push_back(n_up);
+  neighbours.push_back(n_down);
+  neighbours.push_back(n_above);
+  neighbours.push_back(n_below);
+
+  return neighbours;
 }
