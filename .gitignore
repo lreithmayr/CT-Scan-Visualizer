@@ -63,3 +63,4 @@ MyLibUnitTest/tst_mylibunittest.debug
 app/app.debug
 /app/.idea/
 .idea
+eigen/
