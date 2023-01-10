@@ -28,8 +28,9 @@ class Widget : public QWidget {
   ~Widget() override;
 
  private:
-  void UpdateDepthImage();
-  void UpdateDepthImageFromCursor(int depth, int cursor_x, int cursor_y);
+  void Update2DSlice();
+  void Update2DSliceFromCursor(int depth, int cursor_x, int cursor_y);
+  void Update2DSliceRegionGrowing(int seed, int threshold);
   void Update3DRender();
 
  private:

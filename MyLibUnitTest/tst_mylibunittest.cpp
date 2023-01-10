@@ -1,6 +1,7 @@
 #include <QString>
 #include <QtTest>
 #include <algorithm>
+#include <iostream>
 
 #include "mylib.h"
 #include "ct_dataset.h"
@@ -13,6 +14,7 @@ class MyLibUnitTest : public QObject {
 
  private Q_SLOTS:
   static void WindowingTest();
+  static void FindNeighbours2DTest();
 };
 
 /**
@@ -79,6 +81,15 @@ void MyLibUnitTest::WindowingTest() {
   retCode = CTDataset::WindowInputValue(400, -1000, 5000).status().code();
   QVERIFY2(retCode == StatusCode::WIDTH_OUT_OF_RANGE,
 		   "No error code returned although center value was > 4095");
+}
+
+void MyLibUnitTest::FindNeighbours2DTest() {
+  Eigen::Vector2i pt(10, 1);
+  auto neighbours = MyLib::FindNeighbours2D(pt, 10, 10);
+
+  for (auto &nb : neighbours) {
+	std::cout << nb.x() << nb.y() << "\n";
+  }
 }
 
 QTEST_APPLESS_MAIN(MyLibUnitTest)

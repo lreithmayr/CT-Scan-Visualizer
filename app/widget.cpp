@@ -1,6 +1,7 @@
 #include "widget.h"
 
 #define LOG(x) std::cout << x << "\n";
+// #define THRHLD_UPDATE_BOTH
 
 Widget::Widget(QWidget *parent)
   : QWidget(parent),
@@ -45,7 +46,7 @@ Widget::~Widget() {
 
 // Private member functions
 
-void Widget::UpdateDepthImage() {
+void Widget::Update2DSlice() {
   int depth = ui->verticalSlider_depth->value();
   int threshold = ui->horizontalSlider_threshold->value();
   int center = ui->horizontalSlider_center->value();
@@ -71,7 +72,7 @@ void Widget::UpdateDepthImage() {
   ui->label_imgArea->setPixmap(QPixmap::fromImage(m_qImage));
 }
 
-void Widget::UpdateDepthImageFromCursor(int depth, int cursor_x, int cursor_y) {
+void Widget::Update2DSliceFromCursor(int depth, int cursor_x, int cursor_y) {
   int threshold = ui->horizontalSlider_threshold->value();
   int center = ui->horizontalSlider_center->value();
   int window_size = ui->horizontalSlider_windowSize->value();
@@ -126,29 +127,31 @@ void Widget::LoadImage3D() {
 						  "The specified file could not be opened!");
 	return;
   }
-  UpdateDepthImage();
+  Update2DSlice();
 }
 
 void Widget::UpdateWindowingCenter(const int val) {
   ui->label_sliderCenter->setText("Center: " + QString::number(val));
-  UpdateDepthImage();
+  Update2DSlice();
 }
 
 void Widget::UpdateWindowingWindowSize(const int val) {
   ui->label_sliderWSize->setText("Window Size: " + QString::number(val));
-  UpdateDepthImage();
+  Update2DSlice();
 }
 
 void Widget::UpdateDepthValue(const int val) {
   ui->label_currentDepth->setText("Depth: " + QString::number(val));
-  UpdateDepthImage();
+  Update2DSlice();
 }
 
 void Widget::UpdateThresholdValue(const int val) {
   ui->label_sliderThreshold->setText("Threshold: " + QString::number(val));
-  UpdateDepthImage();
+  Update2DSlice();
   if (m_render3dClicked) {
+#ifdef THRHLD_UPDATE_BOTH
 	Update3DRender();
+#endif
   }
 }
 
@@ -169,6 +172,7 @@ void Widget::mousePressEvent(QMouseEvent *event) {
   double cursor_y_mm = cursor_y_px * 0.523; // Pixel y position * Voxel length in y
 
   int depth_at_cursor = m_ctimage.GetDepthBuffer()[local_pos.x() + local_pos.y() * m_qImage.width()] - 1;
+  ui->verticalSlider_depth->setValue(depth_at_cursor);
   auto depth_mm = depth_at_cursor * 0.7; // Depth value * Voxel height
 
   if (ui->label_image3D->rect().contains(local_pos)) {
@@ -180,12 +184,9 @@ void Widget::mousePressEvent(QMouseEvent *event) {
 	if (m_depthBufferIsRendered) {
 	  ui->label_depthPos->setText("Depth [px]: " + QString::number(depth_at_cursor));
 	  ui->label_depthPos_mm->setText("Depth [mm]: " + QString::number(depth_mm));
+	  Update2DSliceFromCursor(depth_at_cursor, local_pos.x(), local_pos.y());
 	}
   }
-
-  Eigen::Vector3i seed(cursor_x_px, cursor_y_px, depth_at_cursor);
-  auto region = m_ctimage.RegionGrowing(seed, ui->horizontalSlider_threshold->value());
-  QMessageBox::information(this, "Test", QString::number(region.value().size()));
 }
 
 void Widget::mouseMoveEvent(QMouseEvent *event) {
@@ -193,15 +194,27 @@ void Widget::mouseMoveEvent(QMouseEvent *event) {
 	QPoint global_pos = event->pos();
 	QPoint local_pos = ui->label_image3D->mapFromParent(global_pos);
 
+	int cursor_x_px = local_pos.x();
+	double cursor_x_mm = cursor_x_px * 0.523; // Pixel x position * Voxel length in x
+	int cursor_y_px = local_pos.y();
+	double cursor_y_mm = cursor_y_px * 0.523; // Pixel y position * Voxel length in y
+
+	int depth_at_cursor = m_ctimage.GetDepthBuffer()[local_pos.x() + local_pos.y() * m_qImage.width()] - 1;
+	auto depth_mm = depth_at_cursor * 0.7; // Depth value * Voxel height
+
 	if (ui->label_image3D->rect().contains(local_pos)) {
-	  // ui->label_xPos->setText("X: " + QString::number(local_pos.x()));
-	  // ui->label_yPos->setText("Y: " + QString::number(local_pos.y()));
+	  ui->label_xPos->setText("X [px]: " + QString::number(cursor_x_px));
+	  ui->label_xPos_mm->setText("X [mm]: " + QString::number(cursor_x_mm));
+	  ui->label_yPos->setText("Y [px]: " + QString::number(cursor_y_px));
+	  ui->label_yPos_mm->setText("Y [mm]: " + QString::number(cursor_y_mm));
 
 	  if (m_depthBufferIsRendered) {
-		int depth_at_cursor = m_ctimage.GetDepthBuffer()[local_pos.x() + local_pos.y() * m_qImage.width()] - 1;
-		// ui->label_depthPos->setText("Depth: " + QString::number(depth_at_cursor));
-		UpdateDepthImageFromCursor(depth_at_cursor, local_pos.x(), local_pos.y());
+		ui->label_depthPos->setText("Depth [px]: " + QString::number(depth_at_cursor));
+		ui->label_depthPos_mm->setText("Depth [mm]: " + QString::number(depth_mm));
 	  }
 	}
   }
+}
+void Widget::Update2DSliceRegionGrowing(int seed, int threshold) {
+
 }

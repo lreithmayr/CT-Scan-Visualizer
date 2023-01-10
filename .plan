@@ -1,22 +1,38 @@
 === REGION GROWING ALGORITHM ===
 
-algorithm region-growing is
-    input: i by j by l array of grayscale values G,
-           seed location S in R³,
-           threshold value T
-    output: i by j array containing grayscale values > threshold
+Inputs: i by j by l array of grayscale values G,
+       seed location S in R³,
+       threshold value T
+Output: Region list R
 
-    let L = region
-    choose arbitrary S
+Initialize: Region list R <- 0
+            Available points list A <- {All voxels in the CT image}
 
-    for each adjacent voxel V to S do
-        if G > T
-            add V to L
+Algorithm:
 
-    while there are unchecked pixels remaining do
-        for each voxel in L
-            for each adjacent voxel V
-                if V is in L
-                    continue
-                if G > T
-                    add to L
+    while A is not empty do:
+
+        Current region R_c <- 0
+        Current Seed S_c <- 0
+        R_c <- S
+        S_c <-S
+        A <- A \ S (remove S from A)
+
+        for seed in S_c do:
+            Find set of nearest neighbours B_c of S_c
+
+            for nb in B_c do
+                if A contains nb and nb_grayValue > T
+                    Add nb to R_c
+                    Add nb to S_c
+                    A <- A \ nb (remove nb from A)
+                end if
+            end for
+        end for
+
+        Add R_c to R
+
+    end while
+
+    return R
+
