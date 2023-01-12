@@ -3,11 +3,11 @@
 CTDataset::CTDataset() :
   m_imgHeight(512),
   m_imgWidth(512),
-  m_layers(256),
-  m_imgData(new int16_t[m_imgHeight * m_imgWidth * m_layers]),
+  m_imgLayers(256),
+  m_imgData(new int16_t[m_imgHeight * m_imgWidth * m_imgLayers]),
   m_depthBuffer(new int16_t[m_imgHeight * m_imgWidth]),
   m_renderedDepthBuffer(new int16_t[m_imgHeight * m_imgWidth]),
-  m_regionGrowingBuffer(new int16_t[m_imgHeight * m_imgWidth * m_layers]) {}
+  m_regionGrowingBuffer(new int16_t[m_imgHeight * m_imgWidth * m_imgLayers]) {}
 
 CTDataset::~CTDataset() {
   delete[] m_imgData;
@@ -28,7 +28,7 @@ Status CTDataset::load(QString &img_path) {
 	return Status(StatusCode::FOPEN_ERROR);
   }
 
-  img_file.read(reinterpret_cast<char *>(m_imgData), m_imgHeight * m_imgWidth * m_layers * sizeof(int16_t));
+  img_file.read(reinterpret_cast<char *>(m_imgData), m_imgHeight * m_imgWidth * m_imgLayers * sizeof(int16_t));
   img_file.close();
   return Status(StatusCode::OK);
 }
@@ -48,25 +48,26 @@ int16_t *CTDataset::GetDepthBuffer() const {
   return m_depthBuffer;
 }
 
-std::vector<Eigen::Vector3i> CTDataset::GetVoxelsInCTImage() const {
-  std::vector<Eigen::Vector3i> img_points;
-
+void CTDataset::FindSurfaceVoxels() {
   for (int y = 0; y < m_imgHeight; ++y) {
+	utils::ProgressBar(1 - (static_cast<float>(y) / static_cast<float>(m_imgHeight)));
 	for (int x = 0; x < m_imgWidth; ++x) {
-	  for (int d = 0; d < m_layers; ++d) {
-		img_points.emplace_back(x, y, d);
+	  for (int d = 0; d < m_imgLayers; ++d) {
+		Eigen::Vector3i pt(x, y, d);
+		if (MyLib::IsSurfacePoint(pt, m_imgWidth, m_imgHeight, m_imgLayers)) {
+		  std::cout << "Is SP" << "\n";
+		  m_surfaceVoxels.push_back(pt);
+		}
 	  }
 	}
   }
-  assert(img_points.size() == (m_imgHeight * m_imgWidth * m_layers));
-  return img_points;
 }
 
 /**
  * @return Pointer of type int16_t to the 3d-rendered depth image buffer
  * @attention Null-checks and bounds-checks are caller's responsiblity
  */
-int16_t *CTDataset::RenderedDepthBuffer() const {
+int16_t *CTDataset::GetRenderedDepthBuffer() const {
   return m_renderedDepthBuffer;
 }
 
@@ -119,8 +120,8 @@ Status CTDataset::CalculateDepthBuffer(int threshold) {
   int raw_value = 0;
   for (int y = 0; y < m_imgHeight; ++y) {
 	for (int x = 0; x < m_imgWidth; ++x) {
-	  m_depthBuffer[x + y * m_imgWidth] = m_layers;
-	  for (int d = 0; d < m_layers; ++d) {
+	  m_depthBuffer[x + y * m_imgWidth] = m_imgLayers;
+	  for (int d = 0; d < m_imgLayers; ++d) {
 		raw_value = m_imgData[(x + y * m_imgWidth) + (m_imgHeight * m_imgWidth * d)];
 		if (raw_value >= threshold) {
 		  m_depthBuffer[x + y * m_imgWidth] = d;
@@ -134,6 +135,23 @@ Status CTDataset::CalculateDepthBuffer(int threshold) {
 	return Status(StatusCode::BUFFER_EMPTY);
   }
 
+  return Status(StatusCode::OK);
+
+}
+
+Status CTDataset::CalculateDepthBufferFromSurfaceVoxels(int threshold) {
+  FindSurfaceVoxels();
+  if (m_surfaceVoxels.empty()) {
+	return Status(StatusCode::BUFFER_EMPTY);
+  }
+
+  for (auto &sv : m_surfaceVoxels) {
+	if (m_imgData[sv.x() + sv.y() * m_imgWidth + (m_imgHeight * m_imgWidth * sv.z())] >= threshold) {
+	  m_depthBuffer[sv.x() + sv.y() * m_imgWidth] = sv.z();
+	  continue;
+	}
+	m_depthBuffer[sv.x() + sv.y() * m_imgWidth] = m_imgLayers;
+  }
   return Status(StatusCode::OK);
 }
 
@@ -178,6 +196,11 @@ Status CTDataset::RenderDepthBuffer() {
   return Status(StatusCode::OK);
 }
 
+int CTDataset::GetGreyValue(const Eigen::Vector2i &pt, const int depth) const {
+  int grey_value = m_imgData[(pt.x() + pt.y() * m_imgWidth) + (m_imgHeight * m_imgWidth * depth)];
+  return grey_value;
+}
+
 int CTDataset::GetGreyValue(const Eigen::Vector3i &pt) const {
   int grey_value = m_imgData[(pt.x() + pt.y() * m_imgWidth) + (m_imgHeight * m_imgWidth * pt.z())];
   return grey_value;
@@ -189,30 +212,57 @@ int CTDataset::GetGreyValue(const Eigen::Vector3i &pt) const {
  * @param threshold
  * @return
  */
-// std::vector<Eigen::Vector2i> CTDataset::RegionGrowing2D(Eigen::Vector2i &seed,
-// 														int threshold) const {
-//   // if (seed.size() != 3) {
-// // 	return StatusOr<std::vector<std::vector<Eigen::Vector3i>>>(Status(StatusCode::EIGEN_VEC_SIZE_ERROR));
-//   // }
-//
-//   std::vector<Eigen::Vector2i> region;
-//   std::vector<Eigen::Vector2i> visited;
-//
-//   while (visited.size() < m_imgHeight * m_imgWidth) {
-// 	std::vector<Eigen::Vector2i> current_region;
-// 	current_region.emplace_back(seed);
-// 	visited.emplace_back(seed);
-// 	std::vector<Eigen::Vector3i> nearest_neighbours = MyLib::FindNeighbours2D(seed);
-//
-// 	for (auto &nb : nearest_neighbours) {
-// 	  if (std::find(available_points.begin(), available_points.end(), nb) != available_points.end()
-// 		&& GetGreyValue(nb) > threshold) {
-// 		current_region.emplace_back(nb);
-// 		std::remove(available_points.begin(), available_points.end(), nb);
-// 	  }
-// 	}
-//   }
-//
-//   return region;
-// }
+std::vector<Eigen::Vector2i> CTDataset::RegionGrowing2D(const Eigen::Vector2i &seed,
+														int threshold,
+														int depth) const {
+  // if (seed.size() != 3) {
+// 	return StatusOr<std::vector<std::vector<Eigen::Vector3i>>>(Status(StatusCode::EIGEN_VEC_SIZE_ERROR));
+  // }
+
+  std::vector<Eigen::Vector2i> region;
+  std::vector<Eigen::Vector2i> visited;
+  region.emplace_back(seed);
+  visited.emplace_back(seed);
+
+  while (visited.size() < (m_imgHeight * m_imgWidth)) {
+	for (auto &px : visited) {
+	  std::vector<Eigen::Vector2i> neighbours = MyLib::FindNeighbours2D(px, m_imgWidth, m_imgHeight);
+
+	  for (auto &nb : neighbours) {
+		if (GetGreyValue(nb, depth) > threshold) {
+		  region.emplace_back(nb);
+		} else {
+		  visited.emplace_back(nb);
+		}
+	  }
+	}
+  }
+  return region;
+}
+
+std::vector<Eigen::Vector3i> CTDataset::RegionGrowing3D(const Eigen::Vector3i &seed, int threshold) const {
+  // if (seed.size() != 3) {
+// 	return StatusOr<std::vector<std::vector<Eigen::Vector3i>>>(Status(StatusCode::EIGEN_VEC_SIZE_ERROR));
+  // }
+
+  std::vector<Eigen::Vector3i> region;
+  std::vector<Eigen::Vector3i> visited;
+  region.emplace_back(seed);
+  visited.emplace_back(seed);
+
+  while (visited.size() < (m_imgHeight * m_imgWidth)) {
+	for (auto &px : visited) {
+	  std::vector<Eigen::Vector3i> neighbours = MyLib::FindNeighbours3D(px, m_imgWidth, m_imgHeight, m_imgLayers);
+
+	  for (auto &nb : neighbours) {
+		if (GetGreyValue(nb) > threshold) {
+		  region.emplace_back(nb);
+		} else {
+		  visited.emplace_back(nb);
+		}
+	  }
+	}
+  }
+  return region;
+}
 

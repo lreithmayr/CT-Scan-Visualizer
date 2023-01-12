@@ -2,12 +2,12 @@
 
 #define LOG(x) std::cout << x << "\n";
 // #define THRHLD_UPDATE_BOTH
+#define ONLY_3DRENDER
 
 Widget::Widget(QWidget *parent)
   : QWidget(parent),
 	ui(new Ui::Widget),
-	m_qImage(QImage(512, 512, QImage::Format_RGB32)),
-	m_render3dClicked(false) {
+	m_qImage(QImage(512, 512, QImage::Format_RGB32)) {
   // Housekeeping
   ui->setupUi(this);
   m_qImage.fill(qRgb(0, 0, 0));
@@ -107,7 +107,7 @@ void Widget::Update3DRender() {
 	  auto val = 0;
 	  for (int y = 0; y < m_qImage.height(); ++y) {
 		for (int x = 0; x < m_qImage.width(); ++x) {
-		  val = m_ctimage.RenderedDepthBuffer()[x + y * m_qImage.width()];
+		  val = m_ctimage.GetRenderedDepthBuffer()[x + y * m_qImage.width()];
 		  m_qImage.setPixel(x, y, qRgb(val, val, val));
 		}
 	  }
@@ -116,7 +116,12 @@ void Widget::Update3DRender() {
   ui->label_image3D->setPixmap(QPixmap::fromImage(m_qImage));
 }
 
-// Slots
+void Widget::UpdateRotationMatrix(QPoint const &position_delta) {
+  m_rot = Eigen::AngleAxisd(position_delta.y() / 180. * M_PI, Eigen::Vector3d::UnitX())
+	* Eigen::AngleAxisd(position_delta.x() / 180. * M_PI, -Eigen::Vector3d::UnitY()) * m_rot;
+}
+
+// =============== Slots ===============
 
 void Widget::LoadImage3D() {
   QString img_path = QFileDialog::getOpenFileName(
@@ -127,6 +132,10 @@ void Widget::LoadImage3D() {
 						  "The specified file could not be opened!");
 	return;
   }
+#ifdef ONLY_3DRENDER
+  return;
+#endif
+
   Update2DSlice();
 }
 
@@ -166,26 +175,19 @@ void Widget::mousePressEvent(QMouseEvent *event) {
   QPoint global_pos = event->pos();
   QPoint local_pos = ui->label_image3D->mapFromParent(global_pos);
 
-  int cursor_x_px = local_pos.x();
-  double cursor_x_mm = cursor_x_px * 0.523; // Pixel x position * Voxel length in x
-  int cursor_y_px = local_pos.y();
-  double cursor_y_mm = cursor_y_px * 0.523; // Pixel y position * Voxel length in y
+  if (event->button() == Qt::LeftButton) {
+	int depth_at_cursor = m_ctimage.GetDepthBuffer()[local_pos.x() + local_pos.y() * m_qImage.width()] - 1;
+	ui->verticalSlider_depth->setValue(depth_at_cursor);
 
-  int depth_at_cursor = m_ctimage.GetDepthBuffer()[local_pos.x() + local_pos.y() * m_qImage.width()] - 1;
-  ui->verticalSlider_depth->setValue(depth_at_cursor);
-  auto depth_mm = depth_at_cursor * 0.7; // Depth value * Voxel height
-
-  if (ui->label_image3D->rect().contains(local_pos)) {
-	ui->label_xPos->setText("X [px]: " + QString::number(cursor_x_px));
-	ui->label_xPos_mm->setText("X [mm]: " + QString::number(cursor_x_mm));
-	ui->label_yPos->setText("Y [px]: " + QString::number(cursor_y_px));
-	ui->label_yPos_mm->setText("Y [mm]: " + QString::number(cursor_y_mm));
-
-	if (m_depthBufferIsRendered) {
-	  ui->label_depthPos->setText("Depth [px]: " + QString::number(depth_at_cursor));
-	  ui->label_depthPos_mm->setText("Depth [mm]: " + QString::number(depth_mm));
-	  Update2DSliceFromCursor(depth_at_cursor, local_pos.x(), local_pos.y());
+	if (ui->label_image3D->rect().contains(local_pos)) {
+	  if (m_depthBufferIsRendered) {
+		Update2DSliceFromCursor(depth_at_cursor, local_pos.x(), local_pos.y());
+	  }
 	}
+  }
+  if (event->button() == Qt::RightButton) {
+	m_currentMousePos = local_pos;
+	qDebug() << m_currentMousePos << "\n";
   }
 }
 
@@ -212,9 +214,15 @@ void Widget::mouseMoveEvent(QMouseEvent *event) {
 		ui->label_depthPos->setText("Depth [px]: " + QString::number(depth_at_cursor));
 		ui->label_depthPos_mm->setText("Depth [mm]: " + QString::number(depth_mm));
 	  }
+
+	  if (event->buttons() == Qt::RightButton) {
+		QPoint position_delta = local_pos - m_currentMousePos;
+		UpdateRotationMatrix(position_delta);
+		Update3DRender();
+	  }
+	  if (event->buttons() != Qt::RightButton) {
+		m_currentMousePos = local_pos;
+	  }
 	}
   }
-}
-void Widget::Update2DSliceRegionGrowing(int seed, int threshold) {
-
 }

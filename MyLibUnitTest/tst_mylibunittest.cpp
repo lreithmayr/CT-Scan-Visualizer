@@ -14,7 +14,8 @@ class MyLibUnitTest : public QObject {
 
  private Q_SLOTS:
   static void WindowingTest();
-  static void FindNeighbours2DTest();
+  // static void FindNeighbours2DTest();
+  static void FindNeighbours3DTest();
 };
 
 /**
@@ -83,13 +84,21 @@ void MyLibUnitTest::WindowingTest() {
 		   "No error code returned although center value was > 4095");
 }
 
-void MyLibUnitTest::FindNeighbours2DTest() {
-  Eigen::Vector2i pt(10, 1);
-  auto neighbours = MyLib::FindNeighbours2D(pt, 10, 10);
+// void MyLibUnitTest::FindNeighbours2DTest() {
+//   Eigen::Vector2i pt(10, 1);
+//   auto neighbours = MyLib::FindNeighbours2D(pt, 10, 10);
+//
+//   for (auto &nb : neighbours) {
+// 	std::cout << nb.x() << nb.y() << "\n";
+//   }
+// }
 
-  for (auto &nb : neighbours) {
-	std::cout << nb.x() << nb.y() << "\n";
-  }
+void MyLibUnitTest::FindNeighbours3DTest() {
+  Eigen::Vector3i pt(1, 5, 5);
+  auto neighbours = MyLib::FindNeighbours3D(pt, 10, 10, 10);
+  std::cout << neighbours.size() << "\n";
+
+  std::cout << MyLib::IsSurfacePoint(pt, 10, 10, 10) << "\n";
 }
 
 QTEST_APPLESS_MAIN(MyLibUnitTest)

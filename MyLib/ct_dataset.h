@@ -32,13 +32,13 @@ class CTDataset {
   [[nodiscard]] int16_t *Data() const;
 
   /// Transform all voxels to 3-D vectors
-  std::vector<Eigen::Vector3i> GetVoxelsInCTImage() const;
+  void FindSurfaceVoxels();
 
   /// Get a pointer to the non-3D rendered depth buffer
   [[nodiscard]] int16_t *GetDepthBuffer() const;
 
   /// Get a pointer to the 3D rendered image buffer
-  [[nodiscard]] int16_t *RenderedDepthBuffer() const;
+  [[nodiscard]] int16_t *GetRenderedDepthBuffer() const;
 
   /// Normalize pixel values to a pre-defined grey-value range
   static StatusOr<int> WindowInputValue(const int &input_value, const int &center, const int &window_size);
@@ -46,14 +46,22 @@ class CTDataset {
   /// Calculate the depth value for each pixel in the CT image
   Status CalculateDepthBuffer(int threshold);
 
+  Status CalculateDepthBufferFromSurfaceVoxels(int threshold);
+
   /// Render a shaded 3D image from the depth buffer
   Status RenderDepthBuffer();
 
-  /// Extract HU value from a point specified as a vector
+  /// Extract HU value from a 2D point specified as a vector
+  [[nodiscard]] int GetGreyValue(const Eigen::Vector2i &pt, const int depth) const;
+
+  /// Extract HU value from a 3D point specified as a vector
   [[nodiscard]] int GetGreyValue(const Eigen::Vector3i &pt) const;
 
   /// Threshold-based region growing algorithm for CT image segmentation
-  std::vector<Eigen::Vector2i> RegionGrowing2D(Eigen::Vector2i &seed, int threshold) const;
+  std::vector<Eigen::Vector2i> RegionGrowing2D(const Eigen::Vector2i &seed, int threshold, int depth) const;
+
+  /// 3D region growing algorithm
+  std::vector<Eigen::Vector3i> RegionGrowing3D(const Eigen::Vector3i &seed, int threshold) const;
 
  private:
   /// Height of the provided CT image (in pixels)
@@ -63,7 +71,7 @@ class CTDataset {
   int m_imgWidth;
 
   /// Number of depth layers of the provided CT image
-  int m_layers;
+  int m_imgLayers;
 
   /// Buffer for the raw image data
   int16_t *m_imgData;
@@ -76,6 +84,8 @@ class CTDataset {
 
   /// Buffer for the region growing image
   int16_t *m_regionGrowingBuffer;
+
+  std::vector<Eigen::Vector3i> m_surfaceVoxels;
 };
 
 #endif  // CT_DATASET_H

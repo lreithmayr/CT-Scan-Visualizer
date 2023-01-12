@@ -11,6 +11,8 @@
 #include <QWidget>
 #include <QMouseEvent>
 #include <QPainter>
+#include <QDebug>
+#include <QDataStream>
 
 #include <iostream>
 
@@ -30,15 +32,17 @@ class Widget : public QWidget {
  private:
   void Update2DSlice();
   void Update2DSliceFromCursor(int depth, int cursor_x, int cursor_y);
-  void Update2DSliceRegionGrowing(int seed, int threshold);
   void Update3DRender();
+  void UpdateRotationMatrix(QPoint const &position_delta);
 
  private:
   Ui::Widget *ui;
   CTDataset m_ctimage;
   QImage m_qImage;
-  bool m_render3dClicked;
+  bool m_render3dClicked{false};
   bool m_depthBufferIsRendered{false};
+  Eigen::Matrix3d m_rot{m_rot.setIdentity()};
+  QPoint m_currentMousePos;
 
  private slots:
   void LoadImage3D();
