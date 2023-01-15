@@ -23,7 +23,7 @@ class MYLIB_EXPORT MyLib {
 };
 
 namespace utils {
-inline static void ProgressBar(int progress) {
+inline static void ProgressBar(float progress) {
   int barWidth = 70;
 
   std::cout << "[";
