@@ -7,13 +7,15 @@ CTDataset::CTDataset() :
   m_imgData(new int16_t[m_imgHeight * m_imgWidth * m_imgLayers]),
   m_depthBuffer(new int16_t[m_imgHeight * m_imgWidth]),
   m_renderedDepthBuffer(new int16_t[m_imgHeight * m_imgWidth]),
-  m_regionGrowingBuffer(new int16_t[m_imgHeight * m_imgWidth * m_imgLayers]) {}
+  m_regionBuffer(new int16_t[m_imgHeight * m_imgWidth * m_imgLayers]{0}),
+  m_visitedBuffer(new int16_t[m_imgHeight * m_imgWidth * m_imgLayers]{0}) {
+}
 
 CTDataset::~CTDataset() {
   delete[] m_imgData;
   delete[] m_depthBuffer;
   delete[] m_renderedDepthBuffer;
-  delete[] m_regionGrowingBuffer;
+  delete[] m_regionBuffer;
 }
 
 /**
@@ -71,6 +73,10 @@ int16_t *CTDataset::GetRenderedDepthBuffer() const {
   return m_renderedDepthBuffer;
 }
 
+int16_t *CTDataset::GetRegionGrowingBuffer() const {
+  return m_regionBuffer;
+}
+
 /**
  * @details Windowing maps a desired slice of the raw grey values (in Hounsfield Units) to a an RGB scale from 0 to
  * \255. This makes it possible to highlight regions of interest such as bone, organ tissue or soft tissue which all
@@ -117,13 +123,33 @@ StatusOr<int> CTDataset::WindowInputValue(const int &input_value, const int &cen
  * @return StatusCode::OK if the result buffer is not empty, else StatusCode::BUFFER_EMPTY
  */
 Status CTDataset::CalculateDepthBuffer(int threshold) {
-  int raw_value = 0;
   for (int y = 0; y < m_imgHeight; ++y) {
 	for (int x = 0; x < m_imgWidth; ++x) {
 	  m_depthBuffer[x + y * m_imgWidth] = m_imgLayers;
 	  for (int d = 0; d < m_imgLayers; ++d) {
-		raw_value = m_imgData[(x + y * m_imgWidth) + (m_imgHeight * m_imgWidth * d)];
-		if (raw_value >= threshold) {
+		if (m_imgData[(x + y * m_imgWidth) + (m_imgHeight * m_imgWidth * d)] >= threshold) {
+		  m_depthBuffer[x + y * m_imgWidth] = d;
+		  break;
+		}
+	  }
+	}
+  }
+  if (m_depthBuffer == nullptr) {
+	return Status(StatusCode::BUFFER_EMPTY);
+  }
+  return Status(StatusCode::OK);
+}
+
+Status CTDataset::CalculateDepthBufferRG() {
+  if (m_regionBuffer == nullptr) {
+	return Status(StatusCode::BUFFER_EMPTY);
+  }
+
+  for (int y = 0; y < m_imgHeight; ++y) {
+	for (int x = 0; x < m_imgWidth; ++x) {
+	  m_depthBuffer[x + y * m_imgWidth] = m_imgLayers;
+	  for (int d = 0; d < m_imgLayers; ++d) {
+		if (m_regionBuffer[(x + y * m_imgWidth) + (m_imgHeight * m_imgWidth * d)] == 1) {
 		  m_depthBuffer[x + y * m_imgWidth] = d;
 		  break;
 		}
@@ -136,23 +162,6 @@ Status CTDataset::CalculateDepthBuffer(int threshold) {
   }
 
   return Status(StatusCode::OK);
-
-}
-
-Status CTDataset::CalculateDepthBufferFromSurfaceVoxels(int threshold) {
-  FindSurfaceVoxels();
-  if (m_surfaceVoxels.empty()) {
-	return Status(StatusCode::BUFFER_EMPTY);
-  }
-
-  for (auto &sv : m_surfaceVoxels) {
-	if (m_imgData[sv.x() + sv.y() * m_imgWidth + (m_imgHeight * m_imgWidth * sv.z())] >= threshold) {
-	  m_depthBuffer[sv.x() + sv.y() * m_imgWidth] = sv.z();
-	  continue;
-	}
-	m_depthBuffer[sv.x() + sv.y() * m_imgWidth] = m_imgLayers;
-  }
-  return Status(StatusCode::OK);
 }
 
 /**
@@ -163,6 +172,10 @@ Status CTDataset::CalculateDepthBufferFromSurfaceVoxels(int threshold) {
  * @return StatusCode::OK if the result buffer is not empty, else StatusCode::BUFFER_EMPTY
  */
 Status CTDataset::RenderDepthBuffer() {
+  if (m_depthBuffer == nullptr) {
+	return Status(StatusCode::BUFFER_EMPTY);
+  }
+
   auto s_x = 2;
   auto s_x_sq = s_x * s_x;
   auto s_y = 2;
@@ -196,73 +209,42 @@ Status CTDataset::RenderDepthBuffer() {
   return Status(StatusCode::OK);
 }
 
-int CTDataset::GetGreyValue(const Eigen::Vector2i &pt, const int depth) const {
-  int grey_value = m_imgData[(pt.x() + pt.y() * m_imgWidth) + (m_imgHeight * m_imgWidth * depth)];
-  return grey_value;
-}
-
 int CTDataset::GetGreyValue(const Eigen::Vector3i &pt) const {
   int grey_value = m_imgData[(pt.x() + pt.y() * m_imgWidth) + (m_imgHeight * m_imgWidth * pt.z())];
   return grey_value;
 }
 
-/**
- * @details For a description of the algorithm in mathematical pseudocode refer to the .plan file of the repository
- * @param seed
- * @param threshold
- * @return
- */
-std::vector<Eigen::Vector2i> CTDataset::RegionGrowing2D(const Eigen::Vector2i &seed,
-														int threshold,
-														int depth) const {
-  // if (seed.size() != 3) {
-// 	return StatusOr<std::vector<std::vector<Eigen::Vector3i>>>(Status(StatusCode::EIGEN_VEC_SIZE_ERROR));
-  // }
+void CTDataset::RegionGrowing3D(Eigen::Vector3i &seed, int threshold) const {
+  int img_size = m_imgHeight * m_imgWidth * m_imgLayers;
+  // int img_size = 10000;
+  int visit_counter = 0;
+  std::stack<Eigen::Vector3i> stack;
+  stack.push(seed);
+  std::vector<Eigen::Vector3i> neighbors;
 
-  std::vector<Eigen::Vector2i> region;
-  std::vector<Eigen::Vector2i> visited;
-  region.emplace_back(seed);
-  visited.emplace_back(seed);
+  while (!stack.empty()) {
+	m_regionBuffer[seed.x() + seed.y() * m_imgWidth + (m_imgHeight * m_imgWidth * seed.z())] = 1;
+	stack.pop();
 
-  while (visited.size() < (m_imgHeight * m_imgWidth)) {
-	for (auto &px : visited) {
-	  std::vector<Eigen::Vector2i> neighbours = MyLib::FindNeighbours2D(px, m_imgWidth, m_imgHeight);
+	MyLib::FindNeighbors3D(seed, neighbors);
 
-	  for (auto &nb : neighbours) {
-		if (GetGreyValue(nb, depth) > threshold) {
-		  region.emplace_back(nb);
-		} else {
-		  visited.emplace_back(nb);
+	for (auto &nb : neighbors) {
+	  // 0: Voxel has not been visited
+	  if (m_regionBuffer[nb.x() + nb.y() * m_imgWidth + (m_imgHeight * m_imgWidth * nb.z())] == 0) {
+		m_regionBuffer[nb.x() + nb.y() * m_imgWidth + (m_imgHeight * m_imgWidth * nb.z())]
+		  = 2; // 2: Voxel has been visited
+		if (GetGreyValue(nb) >= threshold) {
+		  m_regionBuffer[nb.x() + nb.y() * m_imgWidth + (m_imgHeight * m_imgWidth * nb.z())]
+			= 1; // 1: Voxel belong to region
+		  stack.push(nb);
 		}
 	  }
 	}
-  }
-  return region;
-}
-
-std::vector<Eigen::Vector3i> CTDataset::RegionGrowing3D(const Eigen::Vector3i &seed, int threshold) const {
-  // if (seed.size() != 3) {
-// 	return StatusOr<std::vector<std::vector<Eigen::Vector3i>>>(Status(StatusCode::EIGEN_VEC_SIZE_ERROR));
-  // }
-
-  std::vector<Eigen::Vector3i> region;
-  std::vector<Eigen::Vector3i> visited;
-  region.emplace_back(seed);
-  visited.emplace_back(seed);
-
-  while (visited.size() < (m_imgHeight * m_imgWidth)) {
-	for (auto &px : visited) {
-	  std::vector<Eigen::Vector3i> neighbours = MyLib::FindNeighbours3D(px, m_imgWidth, m_imgHeight, m_imgLayers);
-
-	  for (auto &nb : neighbours) {
-		if (GetGreyValue(nb) > threshold) {
-		  region.emplace_back(nb);
-		} else {
-		  visited.emplace_back(nb);
-		}
-	  }
+	if (!stack.empty()) {
+	  seed = stack.top();
 	}
+	++visit_counter;
+	std::cout << (static_cast<float>(visit_counter) / static_cast<float>(img_size)) * 100 << "\n";
   }
-  return region;
+  qDebug() << "Stack is empty!" << "\n";
 }
-

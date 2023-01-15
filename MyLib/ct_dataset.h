@@ -9,7 +9,7 @@
 #include <QFile>
 #include <QDebug>
 
-#include <vector>
+#include <stack>
 #include <cmath>
 #include <cassert>
 
@@ -40,28 +40,24 @@ class CTDataset {
   /// Get a pointer to the 3D rendered image buffer
   [[nodiscard]] int16_t *GetRenderedDepthBuffer() const;
 
+  [[nodiscard]] int16_t *GetRegionGrowingBuffer() const;
+
   /// Normalize pixel values to a pre-defined grey-value range
   static StatusOr<int> WindowInputValue(const int &input_value, const int &center, const int &window_size);
 
   /// Calculate the depth value for each pixel in the CT image
   Status CalculateDepthBuffer(int threshold);
 
-  Status CalculateDepthBufferFromSurfaceVoxels(int threshold);
+  Status CalculateDepthBufferRG();
 
   /// Render a shaded 3D image from the depth buffer
   Status RenderDepthBuffer();
 
-  /// Extract HU value from a 2D point specified as a vector
-  [[nodiscard]] int GetGreyValue(const Eigen::Vector2i &pt, const int depth) const;
-
   /// Extract HU value from a 3D point specified as a vector
   [[nodiscard]] int GetGreyValue(const Eigen::Vector3i &pt) const;
 
-  /// Threshold-based region growing algorithm for CT image segmentation
-  std::vector<Eigen::Vector2i> RegionGrowing2D(const Eigen::Vector2i &seed, int threshold, int depth) const;
-
   /// 3D region growing algorithm
-  std::vector<Eigen::Vector3i> RegionGrowing3D(const Eigen::Vector3i &seed, int threshold) const;
+  void RegionGrowing3D(Eigen::Vector3i &seed, int threshold) const;
 
  private:
   /// Height of the provided CT image (in pixels)
@@ -83,9 +79,12 @@ class CTDataset {
   int16_t *m_renderedDepthBuffer;
 
   /// Buffer for the region growing image
-  int16_t *m_regionGrowingBuffer;
+  int16_t *m_regionBuffer;
+
+  int16_t *m_visitedBuffer;
 
   std::vector<Eigen::Vector3i> m_surfaceVoxels;
+
 };
 
 #endif  // CT_DATASET_H

@@ -177,17 +177,32 @@ void Widget::mousePressEvent(QMouseEvent *event) {
 
   if (event->button() == Qt::LeftButton) {
 	int depth_at_cursor = m_ctimage.GetDepthBuffer()[local_pos.x() + local_pos.y() * m_qImage.width()] - 1;
-	ui->verticalSlider_depth->setValue(depth_at_cursor);
-
 	if (ui->label_image3D->rect().contains(local_pos)) {
-	  if (m_depthBufferIsRendered) {
-		Update2DSliceFromCursor(depth_at_cursor, local_pos.x(), local_pos.y());
+	  // Begin region growing algorithm at seed picked by mouse cursor
+	  Eigen::Vector3i seed(local_pos.x(), local_pos.y(), depth_at_cursor);
+	  m_ctimage.RegionGrowing3D(seed, ui->horizontalSlider_threshold->value());
+
+	  // Calculate and render the depth buffer generated via region growing
+	  if (m_ctimage.CalculateDepthBufferRG().Ok()) {
+		if (m_ctimage.RenderDepthBuffer().Ok()) {
+		  auto val = 0;
+		  for (int y = 0; y < m_qImage.height(); ++y) {
+			for (int x = 0; x < m_qImage.width(); ++x) {
+			  val = m_ctimage.GetRenderedDepthBuffer()[x + y * m_qImage.width()];
+			  m_qImage.setPixel(x, y, qRgb(val, val, val));
+			}
+		  }
+		}
 	  }
+	  ui->label_image3D->setPixmap(QPixmap::fromImage(m_qImage));
+
+	  // if (m_depthBufferIsRendered) {
+	  // ui->verticalSlider_depth->setValue(depth_at_cursor);
+	  // }
 	}
   }
   if (event->button() == Qt::RightButton) {
 	m_currentMousePos = local_pos;
-	qDebug() << m_currentMousePos << "\n";
   }
 }
 
@@ -218,7 +233,7 @@ void Widget::mouseMoveEvent(QMouseEvent *event) {
 	  if (event->buttons() == Qt::RightButton) {
 		QPoint position_delta = local_pos - m_currentMousePos;
 		UpdateRotationMatrix(position_delta);
-		Update3DRender();
+		// Update3DRender();
 	  }
 	  if (event->buttons() != Qt::RightButton) {
 		m_currentMousePos = local_pos;
