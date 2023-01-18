@@ -35,12 +35,12 @@ class CTDataset {
   void FindSurfaceVoxels();
 
   /// Get a pointer to the non-3D rendered depth buffer
-  [[nodiscard]] int16_t *GetDepthBuffer() const;
+  [[nodiscard]] int * GetDepthBuffer() const;
 
   /// Get a pointer to the 3D rendered image buffer
-  [[nodiscard]] int16_t *GetRenderedDepthBuffer() const;
+  [[nodiscard]] int *GetRenderedDepthBuffer() const;
 
-  [[nodiscard]] int16_t *GetRegionGrowingBuffer() const;
+  [[nodiscard]] int *GetRegionGrowingBuffer() const;
 
   /// Normalize pixel values to a pre-defined grey-value range
   static StatusOr<int> WindowInputValue(const int &input_value, const int &center, const int &window_size);
@@ -73,15 +73,15 @@ class CTDataset {
   int16_t *m_imgData;
 
   /// Buffer for the calculated depth values
-  int16_t *m_depthBuffer;
+  int *m_depthBuffer;
 
   /// Buffer for the rendered image
-  int16_t *m_renderedDepthBuffer;
+  int *m_renderedDepthBuffer;
 
   /// Buffer for the region growing image
-  int16_t *m_regionBuffer;
+  int *m_regionBuffer;
 
-  int16_t *m_visitedBuffer;
+  int *m_visitedBuffer;
 
   std::vector<Eigen::Vector3i> m_surfaceVoxels;
 
