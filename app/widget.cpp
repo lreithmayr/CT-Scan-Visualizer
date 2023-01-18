@@ -121,6 +121,25 @@ void Widget::UpdateRotationMatrix(QPoint const &position_delta) {
 	* Eigen::AngleAxisd(position_delta.x() / 180. * M_PI, -Eigen::Vector3d::UnitY()) * m_rot;
 }
 
+void Widget::RenderRegionGrowing(const QPoint &cursor_position, const int depth) {
+  Eigen::Vector3i seed(cursor_position.x(), cursor_position.y(), depth);
+  m_ctimage.RegionGrowing3D(seed, ui->horizontalSlider_threshold->value());
+
+  // Calculate and render the depth buffer generated via region growing
+  if (m_ctimage.CalculateDepthBufferRG().Ok()) {
+	if (m_ctimage.RenderDepthBuffer().Ok()) {
+	  auto val = 0;
+	  for (int y = 0; y < m_qImage.height(); ++y) {
+		for (int x = 0; x < m_qImage.width(); ++x) {
+		  val = m_ctimage.GetRenderedDepthBuffer()[x + y * m_qImage.width()];
+		  m_qImage.setPixel(x, y, qRgb(val, val, val));
+		}
+	  }
+	}
+  }
+  ui->label_image3D->setPixmap(QPixmap::fromImage(m_qImage));
+}
+
 // =============== Slots ===============
 
 void Widget::LoadImage3D() {
@@ -178,27 +197,7 @@ void Widget::mousePressEvent(QMouseEvent *event) {
   if (event->button() == Qt::LeftButton) {
 	int depth_at_cursor = m_ctimage.GetDepthBuffer()[local_pos.x() + local_pos.y() * m_qImage.width()] - 1;
 	if (ui->label_image3D->rect().contains(local_pos)) {
-	  // Begin region growing algorithm at seed picked by mouse cursor
-	  Eigen::Vector3i seed(local_pos.x(), local_pos.y(), depth_at_cursor);
-	  m_ctimage.RegionGrowing3D(seed, ui->horizontalSlider_threshold->value());
-
-	  // Calculate and render the depth buffer generated via region growing
-	  if (m_ctimage.CalculateDepthBufferRG().Ok()) {
-		if (m_ctimage.RenderDepthBuffer().Ok()) {
-		  auto val = 0;
-		  for (int y = 0; y < m_qImage.height(); ++y) {
-			for (int x = 0; x < m_qImage.width(); ++x) {
-			  val = m_ctimage.GetRenderedDepthBuffer()[x + y * m_qImage.width()];
-			  m_qImage.setPixel(x, y, qRgb(val, val, val));
-			}
-		  }
-		}
-	  }
-	  ui->label_image3D->setPixmap(QPixmap::fromImage(m_qImage));
-
-	  // if (m_depthBufferIsRendered) {
-	  // ui->verticalSlider_depth->setValue(depth_at_cursor);
-	  // }
+	  RenderRegionGrowing(local_pos, depth_at_cursor);
 	}
   }
   if (event->button() == Qt::RightButton) {

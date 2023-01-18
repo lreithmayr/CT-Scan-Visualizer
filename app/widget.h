@@ -34,6 +34,7 @@ class Widget : public QWidget {
   void Update2DSliceFromCursor(int depth, int cursor_x, int cursor_y);
   void Update3DRender();
   void UpdateRotationMatrix(QPoint const &position_delta);
+  void RenderRegionGrowing(QPoint const &cursor_position, const int depth);
 
  private:
   Ui::Widget *ui;
