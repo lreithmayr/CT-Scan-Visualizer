@@ -238,8 +238,5 @@ void CTDataset::RegionGrowing3D(Eigen::Vector3i &seed, int threshold) const {
 	if (!stack.empty()) {
 	  seed = stack.top();
 	}
-	++visit_counter;
-	std::cout << (static_cast<float>(visit_counter) / static_cast<float>(img_size)) * 100 << "\n";
   }
-  qDebug() << "Stack is empty!" << "\n";
 }
