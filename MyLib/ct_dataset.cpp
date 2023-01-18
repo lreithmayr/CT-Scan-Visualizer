@@ -5,10 +5,10 @@ CTDataset::CTDataset() :
   m_imgWidth(512),
   m_imgLayers(256),
   m_imgData(new int16_t[m_imgHeight * m_imgWidth * m_imgLayers]),
-  m_depthBuffer(new int16_t[m_imgHeight * m_imgWidth]),
-  m_renderedDepthBuffer(new int16_t[m_imgHeight * m_imgWidth]),
-  m_regionBuffer(new int16_t[m_imgHeight * m_imgWidth * m_imgLayers]{0}),
-  m_visitedBuffer(new int16_t[m_imgHeight * m_imgWidth * m_imgLayers]{0}) {
+  m_depthBuffer(new int[m_imgHeight * m_imgWidth]{m_imgLayers}),
+  m_renderedDepthBuffer(new int[m_imgHeight * m_imgWidth]),
+  m_regionBuffer(new int[m_imgHeight * m_imgWidth * m_imgLayers]{0}),
+  m_visitedBuffer(new int[m_imgHeight * m_imgWidth * m_imgLayers]{0}) {
 }
 
 CTDataset::~CTDataset() {
@@ -46,7 +46,7 @@ int16_t *CTDataset::Data() const {
  * @return Pointer of type int16_t to the non-3D rendered depth buffer
  * @attention Null-checks and bounds-checks are caller's responsiblity
  */
-int16_t *CTDataset::GetDepthBuffer() const {
+int *CTDataset::GetDepthBuffer() const {
   return m_depthBuffer;
 }
 
@@ -69,11 +69,11 @@ void CTDataset::FindSurfaceVoxels() {
  * @return Pointer of type int16_t to the 3d-rendered depth image buffer
  * @attention Null-checks and bounds-checks are caller's responsiblity
  */
-int16_t *CTDataset::GetRenderedDepthBuffer() const {
+int *CTDataset::GetRenderedDepthBuffer() const {
   return m_renderedDepthBuffer;
 }
 
-int16_t *CTDataset::GetRegionGrowingBuffer() const {
+int *CTDataset::GetRegionGrowingBuffer() const {
   return m_regionBuffer;
 }
 
@@ -125,7 +125,6 @@ StatusOr<int> CTDataset::WindowInputValue(const int &input_value, const int &cen
 Status CTDataset::CalculateDepthBuffer(int threshold) {
   for (int y = 0; y < m_imgHeight; ++y) {
 	for (int x = 0; x < m_imgWidth; ++x) {
-	  m_depthBuffer[x + y * m_imgWidth] = m_imgLayers;
 	  for (int d = 0; d < m_imgLayers; ++d) {
 		if (m_imgData[(x + y * m_imgWidth) + (m_imgHeight * m_imgWidth * d)] >= threshold) {
 		  m_depthBuffer[x + y * m_imgWidth] = d;
@@ -141,13 +140,13 @@ Status CTDataset::CalculateDepthBuffer(int threshold) {
 }
 
 Status CTDataset::CalculateDepthBufferRG() {
+  std::fill_n(m_depthBuffer, m_imgWidth * m_imgHeight, m_imgLayers);
   if (m_regionBuffer == nullptr) {
 	return Status(StatusCode::BUFFER_EMPTY);
   }
 
   for (int y = 0; y < m_imgHeight; ++y) {
 	for (int x = 0; x < m_imgWidth; ++x) {
-	  m_depthBuffer[x + y * m_imgWidth] = m_imgLayers;
 	  for (int d = 0; d < m_imgLayers; ++d) {
 		if (m_regionBuffer[(x + y * m_imgWidth) + (m_imgHeight * m_imgWidth * d)] == 1) {
 		  m_depthBuffer[x + y * m_imgWidth] = d;

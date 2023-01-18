@@ -27,6 +27,8 @@ HEADERS += \
     status.h
 
 CONFIG += warn_off
+CONFIG += optimize_full
+
 INCLUDEPATH += $$PWD/../eigen
 
 # Default rules for deployment.
