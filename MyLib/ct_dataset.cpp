@@ -214,27 +214,23 @@ int CTDataset::GetGreyValue(const Eigen::Vector3i &pt) const {
 }
 
 void CTDataset::RegionGrowing3D(Eigen::Vector3i &seed, int threshold) const {
-  int img_size = m_imgHeight * m_imgWidth * m_imgLayers;
-  // int img_size = 10000;
-  int visit_counter = 0;
   std::stack<Eigen::Vector3i> stack;
-  stack.push(seed);
   std::vector<Eigen::Vector3i> neighbors;
 
+  stack.push(seed);
   while (!stack.empty()) {
 	m_regionBuffer[seed.x() + seed.y() * m_imgWidth + (m_imgHeight * m_imgWidth * seed.z())] = 1;
 	stack.pop();
 
 	MyLib::FindNeighbors3D(seed, neighbors);
-
 	for (auto &nb : neighbors) {
 	  // 0: Voxel has not been visited
 	  if (m_regionBuffer[nb.x() + nb.y() * m_imgWidth + (m_imgHeight * m_imgWidth * nb.z())] == 0) {
-		m_regionBuffer[nb.x() + nb.y() * m_imgWidth + (m_imgHeight * m_imgWidth * nb.z())]
-		  = 2; // 2: Voxel has been visited
+		// 2: Voxel has been visited
+		m_regionBuffer[nb.x() + nb.y() * m_imgWidth + (m_imgHeight * m_imgWidth * nb.z())] = 2;
 		if (GetGreyValue(nb) >= threshold) {
-		  m_regionBuffer[nb.x() + nb.y() * m_imgWidth + (m_imgHeight * m_imgWidth * nb.z())]
-			= 1; // 1: Voxel belong to region
+		  // 1: Voxel belongs to region
+		  m_regionBuffer[nb.x() + nb.y() * m_imgWidth + (m_imgHeight * m_imgWidth * nb.z())] = 1;
 		  stack.push(nb);
 		}
 	  }
