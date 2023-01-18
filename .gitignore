@@ -59,6 +59,7 @@ external/
 
 doc/
 
+MyLibUnitTest/tst_mylibunittest
 MyLibUnitTest/tst_mylibunittest.debug
 app/app.debug
 /app/.idea/
