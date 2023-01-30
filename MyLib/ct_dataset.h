@@ -31,11 +31,8 @@ class CTDataset {
   /// Get a pointer to the image data
   [[nodiscard]] int16_t *Data() const;
 
-  /// Transform all voxels to 3-D vectors
-  void FindSurfaceVoxels();
-
   /// Get a pointer to the non-3D rendered depth buffer
-  [[nodiscard]] int * GetDepthBuffer() const;
+  [[nodiscard]] int *GetDepthBuffer() const;
 
   /// Get a pointer to the 3D rendered image buffer
   [[nodiscard]] int *GetRenderedDepthBuffer() const;
