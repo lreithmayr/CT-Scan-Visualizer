@@ -205,7 +205,10 @@ Status CTDataset::CalculateDepthBufferFromRegionGrowing(Eigen::Matrix3d &rotatio
  * @return StatusCode::OK if the result buffer is not empty, else StatusCode::BUFFER_EMPTY
  */
 Status CTDataset::RenderDepthBuffer() {
+  qDebug() << "Rendering depth buffer!" << "\n";
+
   if (m_depthBuffer == nullptr) {
+	qDebug() << "Depth buffer empty!" << "\n";
 	return Status(StatusCode::BUFFER_EMPTY);
   }
 
