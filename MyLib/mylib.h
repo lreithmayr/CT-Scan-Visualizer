@@ -14,12 +14,6 @@ class MYLIB_EXPORT MyLib {
   MyLib() = default;
 
   static void FindNeighbors3D(const Eigen::Vector3i &pt, std::vector<Eigen::Vector3i> &neighbors);
-
-  static bool IsSurfacePoint(Eigen::Vector3i const &point_3d,
-							 const int img_width,
-							 const int img_height,
-							 const int img_layers);
-
 };
 
 namespace utils {

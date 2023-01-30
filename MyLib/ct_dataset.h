@@ -57,7 +57,11 @@ class CTDataset {
   [[nodiscard]] int GetGreyValue(const Eigen::Vector3i &pt) const;
 
   /// 3D region growing algorithm
-  void RegionGrowing3D(Eigen::Vector3i &seed, int threshold) const;
+  void RegionGrowing3D(Eigen::Vector3i &seed, int threshold);
+
+  Status FindSurfacePoints();
+
+  Status FindPointCloudCenter();
 
  private:
   /// Height of the provided CT image (in pixels)
@@ -83,7 +87,13 @@ class CTDataset {
 
   int *m_visitedBuffer;
 
-  std::vector<Eigen::Vector3i> m_surfaceVoxels;
+  int *m_surfacePointBuffer;
+
+  std::vector<Eigen::Vector3i> m_surfacePoints;
+
+  Eigen::Vector3d m_regionVolumeCenter;
+
+  int m_minDepth{m_imgLayers - 1};
 
 };
 

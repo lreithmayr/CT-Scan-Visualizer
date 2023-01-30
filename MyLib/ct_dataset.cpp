@@ -55,21 +55,6 @@ int *CTDataset::GetDepthBuffer() const {
   return m_depthBuffer;
 }
 
-void CTDataset::FindSurfaceVoxels() {
-  for (int y = 0; y < m_imgHeight; ++y) {
-	utils::ProgressBar(1 - (static_cast<float>(y) / static_cast<float>(m_imgHeight)));
-	for (int x = 0; x < m_imgWidth; ++x) {
-	  for (int d = 0; d < m_imgLayers; ++d) {
-		Eigen::Vector3i pt(x, y, d);
-		if (MyLib::IsSurfacePoint(pt, m_imgWidth, m_imgHeight, m_imgLayers)) {
-		  std::cout << "Is SP" << "\n";
-		  m_surfaceVoxels.push_back(pt);
-		}
-	  }
-	}
-  }
-}
-
 /**
  * @return Pointer of type int16_t to the 3d-rendered depth image buffer
  * @attention Null-checks and bounds-checks are caller's responsiblity
@@ -208,17 +193,96 @@ Status CTDataset::RenderDepthBuffer() {
   }
 
   if (m_renderedDepthBuffer == nullptr) {
+	qDebug() << "Depth buffer couldn't be rendered!" << "\n";
 	return Status(StatusCode::BUFFER_EMPTY);
   }
+
+  qDebug() << "Depth buffer rendered!" << "\n";
   return Status(StatusCode::OK);
 }
 
 int CTDataset::GetGreyValue(const Eigen::Vector3i &pt) const {
-  int grey_value = m_imgData[(pt.x() + pt.y() * m_imgWidth) + (m_imgHeight * m_imgWidth * pt.z())];
-  return grey_value;
+  return m_imgData[(pt.x() + pt.y() * m_imgWidth) + (m_imgHeight * m_imgWidth * pt.z())];
 }
 
-void CTDataset::RegionGrowing3D(Eigen::Vector3i &seed, int threshold) const {
+Status CTDataset::FindSurfacePoints() {
+  if (m_regionBuffer == nullptr) {
+	return Status(StatusCode::BUFFER_EMPTY);
+  }
+  m_surfacePoints.clear();
+  m_minDepth = 255;
+
+  Eigen::Vector3i surface_point(0, 0, 0);
+  for (int y = 0; y < m_imgHeight; ++y) {
+	for (int x = 0; x < m_imgWidth; ++x) {
+	  for (int d = 0; d < m_imgLayers; ++d) {
+		int pt = x + y * m_imgWidth + (m_imgHeight * m_imgWidth * d);
+		if (m_regionBuffer[pt] == 1) {
+		  if (m_regionBuffer[(x - 1) + y * m_imgWidth + (m_imgHeight * m_imgWidth * d)] == 1
+			&& m_regionBuffer[(x + 1) + y * m_imgWidth + (m_imgHeight * m_imgWidth * d)] == 1
+			&& m_regionBuffer[x + (y - 1) * m_imgWidth + (m_imgHeight * m_imgWidth * d)] == 1
+			&& m_regionBuffer[x + (y + 1) * m_imgWidth + (m_imgHeight * m_imgWidth * d)] == 1
+			&& m_regionBuffer[x + y * m_imgWidth + (m_imgHeight * m_imgWidth * (d - 1))] == 1
+			&& m_regionBuffer[x + y * m_imgWidth + (m_imgHeight * m_imgWidth * (d + 1))] == 1) {
+			continue;
+		  }
+		  surface_point.x() = x;
+		  surface_point.y() = y;
+		  surface_point.z() = d;
+		  m_surfacePoints.push_back(surface_point);
+
+		  if (d < m_minDepth) m_minDepth = d;
+		}
+	  }
+	}
+  }
+  qDebug() << "Minimum depth: " << m_minDepth << "\n";
+  return Status(StatusCode::OK);
+}
+
+Status CTDataset::FindPointCloudCenter() {
+  if (m_regionBuffer == nullptr) {
+	return Status(StatusCode::BUFFER_EMPTY);
+  }
+
+  std::vector<Eigen::Vector3i> all_region_points;
+  Eigen::Vector3i region_point(0, 0, 0);
+  for (int y = 0; y < m_imgHeight; ++y) {
+	for (int x = 0; x < m_imgWidth; ++x) {
+	  for (int d = 0; d < m_imgLayers; ++d) {
+		int pt = x + y * m_imgWidth + (m_imgHeight * m_imgWidth * d);
+		if (m_regionBuffer[pt] == 1) {
+		  region_point.x() = x;
+		  region_point.y() = y;
+		  region_point.z() = d;
+		  all_region_points.push_back(region_point);
+		}
+	  }
+	}
+  }
+
+  int x_tot = 0;
+  int y_tot = 0;
+  int z_tot = 0;
+  for (auto &pt : all_region_points) {
+	x_tot += pt.x();
+	y_tot += pt.y();
+	z_tot += pt.z();
+  }
+
+  auto region_size = static_cast<double>(all_region_points.size());
+
+  m_regionVolumeCenter = Eigen::Vector3d(static_cast<double>(x_tot) / region_size,
+										 static_cast<double>(y_tot) / region_size,
+										 static_cast<double>(z_tot) / region_size);
+
+  return Status(StatusCode::OK);
+}
+
+void CTDataset::RegionGrowing3D(Eigen::Vector3i &seed, int threshold) {
+  std::fill_n(m_regionBuffer, m_imgHeight * m_imgWidth * m_imgLayers, 0);
+  qDebug() << "Starting region growing algorithm!" << "\n";
+
   std::stack<Eigen::Vector3i> stack;
   std::vector<Eigen::Vector3i> neighbors;
 
@@ -244,4 +308,12 @@ void CTDataset::RegionGrowing3D(Eigen::Vector3i &seed, int threshold) const {
 	  seed = stack.top();
 	}
   }
+  if (FindSurfacePoints().Ok()) {
+	qDebug() << m_surfacePoints.size() << " surface points calculated!" << "\n";
+  }
+  if (FindPointCloudCenter().Ok()) {
+	qDebug() << "Centroid: " << m_regionVolumeCenter.x() << m_regionVolumeCenter.y() << m_regionVolumeCenter.z()
+			 << "\n";
+  }
 }
+
