@@ -116,7 +116,8 @@ Status CTDataset::CalculateDepthBuffer(int threshold) {
   for (int y = 0; y < m_imgHeight; ++y) {
 	for (int x = 0; x < m_imgWidth; ++x) {
 	  for (int d = 0; d < m_imgLayers; ++d) {
-		if (m_imgData[(x + y * m_imgWidth) + (m_imgHeight * m_imgWidth * d)] >= threshold) {
+		int curr_pt = (x + y * m_imgWidth) + (m_imgHeight * m_imgWidth * d);
+		if (m_imgData[curr_pt] >= threshold) {
 		  m_depthBuffer[x + y * m_imgWidth] = d;
 		  break;
 		}
