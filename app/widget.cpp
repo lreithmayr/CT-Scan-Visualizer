@@ -197,7 +197,9 @@ void Widget::mousePressEvent(QMouseEvent *event) {
   if (event->button() == Qt::LeftButton) {
 	int depth_at_cursor = m_ctimage.GetDepthBuffer()[local_pos.x() + local_pos.y() * m_qImage.width()] - 1;
 	if (ui->label_image3D->rect().contains(local_pos)) {
-	  RenderRegionGrowing(local_pos, depth_at_cursor);
+	  Eigen::Vector3i seed(local_pos.x(), local_pos.y(), depth_at_cursor);
+	  m_ctimage.RegionGrowing3D(seed, ui->horizontalSlider_threshold->value());
+	  RenderRegionGrowing();
 	}
   }
   if (event->button() == Qt::RightButton) {
@@ -232,7 +234,7 @@ void Widget::mouseMoveEvent(QMouseEvent *event) {
 	  if (event->buttons() == Qt::RightButton) {
 		QPoint position_delta = local_pos - m_currentMousePos;
 		UpdateRotationMatrix(position_delta);
-		// Update3DRender();
+		RenderRegionGrowing();
 	  }
 	  if (event->buttons() != Qt::RightButton) {
 		m_currentMousePos = local_pos;

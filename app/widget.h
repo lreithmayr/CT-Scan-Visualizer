@@ -34,7 +34,7 @@ class Widget : public QWidget {
   void Update2DSliceFromCursor(int depth, int cursor_x, int cursor_y);
   void Update3DRender();
   void UpdateRotationMatrix(QPoint const &position_delta);
-  void RenderRegionGrowing(QPoint const &cursor_position, const int depth);
+  void RenderRegionGrowing();
 
  private:
   Ui::Widget *ui;
@@ -42,7 +42,7 @@ class Widget : public QWidget {
   QImage m_qImage;
   bool m_render3dClicked{false};
   bool m_depthBufferIsRendered{false};
-  Eigen::Matrix3d m_rot{m_rot.setIdentity()};
+  Eigen::Matrix3d m_rotationMat{m_rotationMat.setIdentity()};
   QPoint m_currentMousePos;
 
  private slots:

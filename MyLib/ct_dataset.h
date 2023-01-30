@@ -48,7 +48,7 @@ class CTDataset {
   /// Calculate the depth value for each pixel in the CT image
   Status CalculateDepthBuffer(int threshold);
 
-  Status CalculateDepthBufferRG();
+  Status CalculateDepthBufferFromRegionGrowing(Eigen::Matrix3d &rotation_mat);
 
   /// Render a shaded 3D image from the depth buffer
   Status RenderDepthBuffer();
