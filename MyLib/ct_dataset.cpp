@@ -1,21 +1,26 @@
 #include "ct_dataset.h"
 
+// #define SURFACE_POINTS_FROM_BUFFER
+
 CTDataset::CTDataset() :
   m_imgHeight(512),
   m_imgWidth(512),
   m_imgLayers(256),
   m_imgData(new int16_t[m_imgHeight * m_imgWidth * m_imgLayers]),
-  m_depthBuffer(new int[m_imgHeight * m_imgWidth]{m_imgLayers}),
-  m_renderedDepthBuffer(new int[m_imgHeight * m_imgWidth]),
   m_regionBuffer(new int[m_imgHeight * m_imgWidth * m_imgLayers]{0}),
-  m_visitedBuffer(new int[m_imgHeight * m_imgWidth * m_imgLayers]{0}) {
+  m_visitedBuffer(new int[m_imgHeight * m_imgWidth * m_imgLayers]{0}),
+  m_surfacePointBuffer(new int[m_imgHeight * m_imgWidth * m_imgLayers]{0}),
+  m_depthBuffer(new int[m_imgHeight * m_imgWidth]{m_imgLayers}),
+  m_renderedDepthBuffer(new int[m_imgHeight * m_imgWidth]) {
 }
 
 CTDataset::~CTDataset() {
   delete[] m_imgData;
+  delete[] m_regionBuffer;
+  delete[] m_visitedBuffer;
+  delete[] m_surfacePointBuffer;
   delete[] m_depthBuffer;
   delete[] m_renderedDepthBuffer;
-  delete[] m_regionBuffer;
 }
 
 /**
