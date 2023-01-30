@@ -1,8 +1,7 @@
 #include "widget.h"
 
-#define LOG(x) std::cout << x << "\n";
 // #define THRHLD_UPDATE_BOTH
-#define ONLY_3DRENDER
+// #define ONLY_3DRENDER
 
 Widget::Widget(QWidget *parent)
   : QWidget(parent),
@@ -117,16 +116,12 @@ void Widget::Update3DRender() {
 }
 
 void Widget::UpdateRotationMatrix(QPoint const &position_delta) {
-  m_rot = Eigen::AngleAxisd(position_delta.y() / 180. * M_PI, Eigen::Vector3d::UnitX())
-	* Eigen::AngleAxisd(position_delta.x() / 180. * M_PI, -Eigen::Vector3d::UnitY()) * m_rot;
+  m_rotationMat = Eigen::AngleAxisd(position_delta.y() / 180. * M_PI, Eigen::Vector3d::UnitX())
+	* Eigen::AngleAxisd(position_delta.x() / 180. * M_PI, -Eigen::Vector3d::UnitY()) * m_rotationMat;
 }
 
-void Widget::RenderRegionGrowing(const QPoint &cursor_position, const int depth) {
-  Eigen::Vector3i seed(cursor_position.x(), cursor_position.y(), depth);
-  m_ctimage.RegionGrowing3D(seed, ui->horizontalSlider_threshold->value());
-
-  // Calculate and render the depth buffer generated via region growing
-  if (m_ctimage.CalculateDepthBufferRG().Ok()) {
+void Widget::RenderRegionGrowing() {
+  if (m_ctimage.CalculateDepthBufferFromRegionGrowing(m_rotationMat).Ok()) {
 	if (m_ctimage.RenderDepthBuffer().Ok()) {
 	  auto val = 0;
 	  for (int y = 0; y < m_qImage.height(); ++y) {
