@@ -42,8 +42,8 @@ class Widget : public QWidget {
   QImage m_qImage;
   bool m_render3dClicked{false};
   bool m_depthBufferIsRendered{false};
-  Eigen::Matrix3d m_rotationMat{m_rotationMat.setIdentity()};
-  QPoint m_currentMousePos;
+  Eigen::Matrix3d m_rotationMat;
+  QPoint m_currentMousePos{0, 0};
 
  private slots:
   void LoadImage3D();
@@ -54,6 +54,7 @@ class Widget : public QWidget {
   void Render3D();
   void mousePressEvent(QMouseEvent *event) override;
   void mouseMoveEvent(QMouseEvent *event) override;
+  void ClearAllBuffers();
 };
 
 #endif //WIDGET_H

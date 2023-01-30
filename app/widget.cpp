@@ -7,6 +7,9 @@ Widget::Widget(QWidget *parent)
   : QWidget(parent),
 	ui(new Ui::Widget),
 	m_qImage(QImage(512, 512, QImage::Format_RGB32)) {
+  // Initialize rotation matrix
+  m_rotationMat.setIdentity();
+
   // Housekeeping
   ui->setupUi(this);
   m_qImage.fill(qRgb(0, 0, 0));
@@ -19,6 +22,7 @@ Widget::Widget(QWidget *parent)
   connect(ui->pushButton_loadImage3D, SIGNAL(clicked()), this,
 		  SLOT(LoadImage3D()));
   connect(ui->pushButton_render3D, SIGNAL(clicked()), this, SLOT(Render3D()));
+  connect(ui->pushButton_clearBuffers, SIGNAL(clicked()), this, SLOT(ClearAllBuffers()));
 
   // Horizontal sliders
   connect(ui->horizontalSlider_threshold, SIGNAL(valueChanged(int)), this,
@@ -139,7 +143,7 @@ void Widget::RenderRegionGrowing() {
 
 void Widget::LoadImage3D() {
   QString img_path = QFileDialog::getOpenFileName(
-	this, "Open Image", "../external/images", "Raw Image Files (*.raw)");
+	this, "Open Image", "../../external/images", "Raw Image Files (*.raw)");
 
   if (!m_ctimage.load(img_path).Ok()) {
 	QMessageBox::critical(this, "Error",
@@ -190,7 +194,7 @@ void Widget::mousePressEvent(QMouseEvent *event) {
   QPoint local_pos = ui->label_image3D->mapFromParent(global_pos);
 
   if (event->button() == Qt::LeftButton) {
-	int depth_at_cursor = m_ctimage.GetDepthBuffer()[local_pos.x() + local_pos.y() * m_qImage.width()] - 1;
+	int depth_at_cursor = m_ctimage.GetDepthBuffer()[local_pos.x() + local_pos.y() * m_qImage.width()];
 	if (ui->label_image3D->rect().contains(local_pos)) {
 	  Eigen::Vector3i seed(local_pos.x(), local_pos.y(), depth_at_cursor);
 	  m_ctimage.RegionGrowing3D(seed, ui->horizontalSlider_threshold->value());
@@ -212,7 +216,7 @@ void Widget::mouseMoveEvent(QMouseEvent *event) {
 	int cursor_y_px = local_pos.y();
 	double cursor_y_mm = cursor_y_px * 0.523; // Pixel y position * Voxel length in y
 
-	int depth_at_cursor = m_ctimage.GetDepthBuffer()[local_pos.x() + local_pos.y() * m_qImage.width()] - 1;
+	int depth_at_cursor = m_ctimage.GetDepthBuffer()[local_pos.x() + local_pos.y() * m_qImage.width()];
 	auto depth_mm = depth_at_cursor * 0.7; // Depth value * Voxel height
 
 	if (ui->label_image3D->rect().contains(local_pos)) {
@@ -229,11 +233,16 @@ void Widget::mouseMoveEvent(QMouseEvent *event) {
 	  if (event->buttons() == Qt::RightButton) {
 		QPoint position_delta = local_pos - m_currentMousePos;
 		UpdateRotationMatrix(position_delta);
+		m_currentMousePos = local_pos;
 		RenderRegionGrowing();
 	  }
-	  if (event->buttons() != Qt::RightButton) {
-		m_currentMousePos = local_pos;
-	  }
+	  // if (event->buttons() != Qt::RightButton) {
+	// 	m_currentMousePos = local_pos;
+	  // }
 	}
   }
+}
+
+void Widget::ClearAllBuffers() {
+	m_ctimage.ResetBuffers();
 }

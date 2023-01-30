@@ -60,6 +60,8 @@ class CTDataset {
 
   Status FindPointCloudCenter();
 
+  void ResetBuffers();
+
  private:
   /// Height of the provided CT image (in pixels)
   int m_imgHeight;
@@ -87,6 +89,8 @@ class CTDataset {
   int *m_surfacePointBuffer;
 
   std::vector<Eigen::Vector3i> m_surfacePoints;
+
+  std::vector<Eigen::Vector3i> m_allPointsInRegion;
 
   Eigen::Vector3d m_regionVolumeCenter;
 

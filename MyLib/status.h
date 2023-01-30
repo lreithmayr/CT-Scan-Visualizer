@@ -59,15 +59,15 @@ class [[nodiscard]] Status final {
  * The whole class is [[nodiscard]], so either the return value or the error
  * must be used by the caller.
  */
-template <typename T>
+template<typename T>
 class [[nodiscard]] StatusOr {
  public:
   /// Holds a return value (generic over T) in case of success.
   explicit StatusOr(T value) : m_value(value), m_status(StatusCode::OK) {}
   /// Holds a Status in case of failure.
   explicit StatusOr(Status stat)
-      : m_status(stat) {}  // FIXME: Initialize the value as empty (or as some
-                           // type that signifies empty)
+	: m_status(stat) {}  // FIXME: Initialize the value as empty (or as some
+  // type that signifies empty)
 
   /// @returns Reference to a value if no error is present.
   T &value() { return m_value; }
@@ -88,7 +88,7 @@ class [[nodiscard]] StatusOr {
   // and up. Unions (tagged or otherwise) are evil (not type-safe), that's why
   // it's just two member variables for now.
  private:
-  T m_value;
+  T m_value{0};
   Status m_status;
 };
 

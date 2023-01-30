@@ -6,12 +6,12 @@ CTDataset::CTDataset() :
   m_imgHeight(512),
   m_imgWidth(512),
   m_imgLayers(256),
-  m_imgData(new int16_t[m_imgHeight * m_imgWidth * m_imgLayers]),
+  m_imgData(new int16_t[m_imgHeight * m_imgWidth * m_imgLayers]{0}),
   m_regionBuffer(new int[m_imgHeight * m_imgWidth * m_imgLayers]{0}),
   m_visitedBuffer(new int[m_imgHeight * m_imgWidth * m_imgLayers]{0}),
   m_surfacePointBuffer(new int[m_imgHeight * m_imgWidth * m_imgLayers]{0}),
-  m_depthBuffer(new int[m_imgHeight * m_imgWidth]{m_imgLayers}),
-  m_renderedDepthBuffer(new int[m_imgHeight * m_imgWidth]) {
+  m_depthBuffer(new int[m_imgHeight * m_imgWidth]{0}),
+  m_renderedDepthBuffer(new int[m_imgHeight * m_imgWidth]{0}) {
 }
 
 CTDataset::~CTDataset() {
@@ -168,7 +168,7 @@ Status CTDataset::CalculateDepthBufferFromRegionGrowing(Eigen::Matrix3d &rotatio
 #else
 Status CTDataset::CalculateDepthBufferFromRegionGrowing(Eigen::Matrix3d &rotation_mat) {
   qDebug() << "Calculating depth buffer from region growing!" << "\n";
-  std::fill_n(m_depthBuffer, m_imgHeight * m_imgWidth, m_imgLayers);
+  std::fill_n(m_depthBuffer, m_imgWidth * m_imgHeight, m_imgLayers - 1);
 
   if (m_surfacePoints.empty()) {
 	qDebug() << "No surface points!" << "\n";
@@ -176,13 +176,16 @@ Status CTDataset::CalculateDepthBufferFromRegionGrowing(Eigen::Matrix3d &rotatio
   }
 
   int buffer_size = 0;
-  Eigen::Vector3d pt_rot;
+  Eigen::Vector3d pt_rot(0, 0, 0);
+  qDebug() << "Iterating through surface points." << "\n";
   for (auto &surface_point : m_surfacePoints) {
 	pt_rot = rotation_mat * (surface_point.cast<double>() - m_regionVolumeCenter) + m_regionVolumeCenter;
+	// qDebug() << "pt_rot: " << pt_rot.x() << pt_rot.y() << pt_rot.z() << "\n";
 	if (static_cast<int>(pt_rot.x()) < m_imgWidth && static_cast<int>(pt_rot.y()) < m_imgHeight) {
 	  m_depthBuffer[static_cast<int>(pt_rot.x()) + static_cast<int>(pt_rot.y()) * m_imgWidth]
 		= static_cast<int>(pt_rot.z());
-	  ++buffer_size;
+	  buffer_size++;
+	  // qDebug() << m_depthBuffer[static_cast<int>(pt_rot.x()) + static_cast<int>(pt_rot.y()) * m_imgWidth] << "\n";
 	}
   }
 
@@ -191,7 +194,7 @@ Status CTDataset::CalculateDepthBufferFromRegionGrowing(Eigen::Matrix3d &rotatio
 	return Status(StatusCode::BUFFER_EMPTY);
   }
 
-  qDebug() << "RG depth buffer calculated!" << "\n" << "Number of surface points that got rotated: " << buffer_size
+  qDebug() << "RG depth buffer calculated!" << "\n" << "Number of points that will be rendered: " << buffer_size
 		   << "\n";
   return Status(StatusCode::OK);
 }
@@ -213,18 +216,19 @@ Status CTDataset::RenderDepthBuffer() {
   }
 
   auto s_x = 2;
-  auto s_x_sq = s_x * s_x;
   auto s_y = 2;
-  auto s_y_sq = s_y * s_y;
-  auto s_pow_four = s_x_sq * s_y_sq;
   auto T_x = 0;
   auto T_y = 0;
-  auto syTx_sq = 0;
   auto sxTy_sq = 0;
+  auto syTx_sq = 0;
   auto nom = 255 * s_x * s_y;
   double denom = 0;
   double inv = 0;
   int I_ref = 0;
+
+  auto s_x_sq = s_x * s_x;
+  auto s_y_sq = s_y * s_y;
+  auto s_pow_four = s_x_sq * s_y_sq;
 
   for (int y = 1; y < m_imgHeight - 1; ++y) {
 	for (int x = 1; x < m_imgWidth - 1; ++x) {
@@ -292,7 +296,8 @@ Status CTDataset::FindPointCloudCenter() {
 	return Status(StatusCode::BUFFER_EMPTY);
   }
 
-  std::vector<Eigen::Vector3i> all_region_points;
+  m_allPointsInRegion.clear();
+
   Eigen::Vector3i region_point(0, 0, 0);
   for (int y = 0; y < m_imgHeight; ++y) {
 	for (int x = 0; x < m_imgWidth; ++x) {
@@ -302,22 +307,24 @@ Status CTDataset::FindPointCloudCenter() {
 		  region_point.x() = x;
 		  region_point.y() = y;
 		  region_point.z() = d;
-		  all_region_points.push_back(region_point);
+		  m_allPointsInRegion.push_back(region_point);
 		}
 	  }
 	}
   }
 
-  int x_tot = 0;
-  int y_tot = 0;
-  int z_tot = 0;
-  for (auto &pt : all_region_points) {
+  int64_t x_tot = 0;
+  int64_t y_tot = 0;
+  int64_t z_tot = 0;
+  for (auto &pt : m_allPointsInRegion) {
 	x_tot += pt.x();
 	y_tot += pt.y();
 	z_tot += pt.z();
   }
 
-  auto region_size = static_cast<double>(all_region_points.size());
+  qDebug() << "x_tot: " << x_tot << "y_tot: " << y_tot << "z_tot: " << z_tot << "\n";
+
+  auto region_size = static_cast<double>(m_allPointsInRegion.size());
 
   m_regionVolumeCenter = Eigen::Vector3d(static_cast<double>(x_tot) / region_size,
 										 static_cast<double>(y_tot) / region_size,
@@ -359,8 +366,16 @@ void CTDataset::RegionGrowing3D(Eigen::Vector3i &seed, int threshold) {
 	qDebug() << m_surfacePoints.size() << " surface points calculated!" << "\n";
   }
   if (FindPointCloudCenter().Ok()) {
+	qDebug() << m_allPointsInRegion.size() << " total points in the region!" << "\n";
 	qDebug() << "Centroid: " << m_regionVolumeCenter.x() << m_regionVolumeCenter.y() << m_regionVolumeCenter.z()
 			 << "\n";
   }
+}
+
+void CTDataset::ResetBuffers() {
+  std::fill(m_regionBuffer, m_regionBuffer + (m_imgHeight * m_imgWidth * m_imgLayers), 0);
+  std::fill(m_visitedBuffer, m_visitedBuffer + (m_imgHeight * m_imgWidth * m_imgLayers), 0);
+  std::fill(m_depthBuffer, m_depthBuffer + (m_imgHeight * m_imgWidth), 0);
+  std::fill(m_renderedDepthBuffer, m_renderedDepthBuffer + (m_imgHeight * m_imgWidth), 0);
 }
 

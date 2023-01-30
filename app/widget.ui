@@ -289,6 +289,19 @@
     <string>TextLabel</string>
    </property>
   </widget>
+  <widget class="QPushButton" name="pushButton_clearBuffers">
+   <property name="geometry">
+    <rect>
+     <x>760</x>
+     <y>30</y>
+     <width>171</width>
+     <height>27</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Clear All Buffers</string>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>
