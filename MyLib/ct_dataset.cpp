@@ -1,7 +1,5 @@
 #include "ct_dataset.h"
 
-// #define SURFACE_POINTS_FROM_BUFFER
-
 CTDataset::CTDataset() :
   m_imgHeight(512),
   m_imgWidth(512),
@@ -130,42 +128,6 @@ Status CTDataset::CalculateDepthBuffer(int threshold) {
   return Status(StatusCode::OK);
 }
 
-#ifdef SURFACE_POINTS_FROM_BUFFER
-Status CTDataset::CalculateDepthBufferFromRegionGrowing(Eigen::Matrix3d &rotation_mat) {
-  // std::fill_n(m_depthBuffer, m_imgWidth * m_imgHeight, m_imgLayers);
-  memset(m_depthBuffer, m_imgLayers, m_imgWidth * m_imgHeight);
-  if (m_regionBuffer == nullptr) {
-	return Status(StatusCode::BUFFER_EMPTY);
-  }
-
-  Eigen::Vector3i pt(0, 0, 0);
-  Eigen::Vector3d pt_rot(0, 0, 0);
-  for (int y = 0; y < m_imgHeight; ++y) {
-	for (int x = 0; x < m_imgWidth; ++x) {
-	  // m_depthBuffer[x + y * m_imgWidth] = m_imgLayers;
-	  for (int d = 0; d < m_imgLayers; ++d) {
-		int curr_pt = x + y * m_imgWidth + (m_imgHeight * m_imgWidth * d);
-		if (m_surfacePointBuffer[curr_pt] == 1) {
-		  pt.x() = x;
-		  pt.y() = y;
-		  pt.z() = d;
-		  pt_rot = rotation_mat * pt.cast<double>();
-		  m_depthBuffer[static_cast<int>(pt_rot.x()) + static_cast<int>(pt_rot.y()) * m_imgWidth]
-			= static_cast<int>(pt_rot.z());
-		  break;
-		}
-	  }
-	}
-  }
-
-  if (m_depthBuffer == nullptr) {
-	return Status(StatusCode::BUFFER_EMPTY);
-  }
-
-  return Status(StatusCode::OK);
-}
-
-#else
 Status CTDataset::CalculateDepthBufferFromRegionGrowing(Eigen::Matrix3d &rotation_mat) {
   qDebug() << "Calculating depth buffer from region growing!" << "\n";
   std::fill_n(m_depthBuffer, m_imgWidth * m_imgHeight, m_imgLayers - 1);
@@ -179,9 +141,13 @@ Status CTDataset::CalculateDepthBufferFromRegionGrowing(Eigen::Matrix3d &rotatio
   Eigen::Vector3d pt_rot(0, 0, 0);
   qDebug() << "Iterating through surface points." << "\n";
   for (auto &surface_point : m_surfacePoints) {
-	pt_rot = rotation_mat * (surface_point.cast<double>()- m_regionVolumeCenter) + m_regionVolumeCenter;
+	pt_rot = rotation_mat * (surface_point.cast<double>() - m_regionVolumeCenter) + m_regionVolumeCenter;
 	if (static_cast<int>(pt_rot.x()) < m_imgWidth && static_cast<int>(pt_rot.y()) < m_imgHeight) {
 	  m_depthBuffer[static_cast<int>(pt_rot.x()) + static_cast<int>(pt_rot.y()) * m_imgWidth]
+		= m_depthBuffer[static_cast<int>(pt_rot.x()) - 1 + static_cast<int>(pt_rot.y()) * m_imgWidth]
+		= m_depthBuffer[static_cast<int>(pt_rot.x()) + 1 + static_cast<int>(pt_rot.y()) * m_imgWidth]
+		= m_depthBuffer[static_cast<int>(pt_rot.x()) + static_cast<int>(pt_rot.y()) - 1 * m_imgWidth]
+		= m_depthBuffer[static_cast<int>(pt_rot.x()) + static_cast<int>(pt_rot.y()) + 1 * m_imgWidth]
 		= static_cast<int>(pt_rot.z());
 	  buffer_size++;
 	}
@@ -196,7 +162,6 @@ Status CTDataset::CalculateDepthBufferFromRegionGrowing(Eigen::Matrix3d &rotatio
 		   << "\n";
   return Status(StatusCode::OK);
 }
-#endif
 
 /**
  * @details The 3D image is rendered by computing the depth-value gradient in x and y for each pixel (in essence,

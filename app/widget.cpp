@@ -235,6 +235,7 @@ void Widget::mouseMoveEvent(QMouseEvent *event) {
 	  if (m_depthBufferIsRendered) {
 		ui->label_depthPos->setText("Depth [px]: " + QString::number(depth_at_cursor));
 		ui->label_depthPos_mm->setText("Depth [mm]: " + QString::number(depth_mm));
+		// Update2DSliceFromCursor(depth_at_cursor, cursor_x_px, cursor_y_px);
 	  }
 
 	  if (event->buttons() == Qt::RightButton) {
@@ -243,9 +244,6 @@ void Widget::mouseMoveEvent(QMouseEvent *event) {
 		RenderRegionGrowing();
 		m_currentMousePos = local_pos;
 	  }
-	  // if (event->buttons() != Qt::RightButton) {
-	  // 	m_currentMousePos = local_pos;
-	  // }
 	}
   }
 }
