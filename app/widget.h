@@ -44,6 +44,8 @@ class Widget : public QWidget {
   bool m_depthBufferIsRendered{false};
   Eigen::Matrix3d m_rotationMat;
   QPoint m_currentMousePos{0, 0};
+  Eigen::Vector3i m_currentSeed;
+  bool m_seedPicked{false};
 
  private slots:
   void LoadImage3D();
@@ -54,7 +56,7 @@ class Widget : public QWidget {
   void Render3D();
   void mousePressEvent(QMouseEvent *event) override;
   void mouseMoveEvent(QMouseEvent *event) override;
-  void ClearAllBuffers();
+  void StartRegionGrowingFromSeed();
 };
 
 #endif //WIDGET_H

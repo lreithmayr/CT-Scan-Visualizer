@@ -202,7 +202,7 @@
    <property name="geometry">
     <rect>
      <x>760</x>
-     <y>90</y>
+     <y>30</y>
      <width>171</width>
      <height>27</height>
     </rect>
@@ -215,91 +215,104 @@
    <property name="geometry">
     <rect>
      <x>590</x>
-     <y>160</y>
+     <y>130</y>
      <width>91</width>
      <height>21</height>
     </rect>
    </property>
    <property name="text">
-    <string>TextLabel</string>
+    <string>X [px]:</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_yPos">
    <property name="geometry">
     <rect>
      <x>730</x>
-     <y>160</y>
+     <y>130</y>
      <width>91</width>
      <height>19</height>
     </rect>
    </property>
    <property name="text">
-    <string>TextLabel</string>
+    <string>Y [px]:</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_depthPos">
    <property name="geometry">
     <rect>
      <x>870</x>
-     <y>160</y>
+     <y>130</y>
      <width>151</width>
      <height>19</height>
     </rect>
    </property>
    <property name="text">
-    <string>TextLabel</string>
+    <string>Depth [px]:</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_yPos_mm">
    <property name="geometry">
     <rect>
      <x>730</x>
-     <y>200</y>
+     <y>170</y>
      <width>131</width>
      <height>19</height>
     </rect>
    </property>
    <property name="text">
-    <string>TextLabel</string>
+    <string>Y [mm]:</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_xPos_mm">
    <property name="geometry">
     <rect>
      <x>590</x>
-     <y>200</y>
+     <y>170</y>
      <width>131</width>
      <height>21</height>
     </rect>
    </property>
    <property name="text">
-    <string>TextLabel</string>
+    <string>X [mm]:</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_depthPos_mm">
    <property name="geometry">
     <rect>
      <x>870</x>
-     <y>200</y>
+     <y>170</y>
      <width>231</width>
      <height>19</height>
     </rect>
    </property>
    <property name="text">
-    <string>TextLabel</string>
+    <string>Depth [mm]:</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton_clearBuffers">
+  <widget class="QPushButton" name="pushButton_startRegionGrowing">
    <property name="geometry">
     <rect>
-     <x>760</x>
-     <y>30</y>
-     <width>171</width>
-     <height>27</height>
+     <x>680</x>
+     <y>70</y>
+     <width>311</width>
+     <height>41</height>
     </rect>
    </property>
    <property name="text">
-    <string>Clear All Buffers</string>
+    <string>Start Region Growing from Current Seed</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_currentSeed">
+   <property name="geometry">
+    <rect>
+     <x>590</x>
+     <y>200</y>
+     <width>531</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Current Seed [px]: </string>
    </property>
   </widget>
  </widget>

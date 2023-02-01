@@ -22,7 +22,7 @@ Widget::Widget(QWidget *parent)
   connect(ui->pushButton_loadImage3D, SIGNAL(clicked()), this,
 		  SLOT(LoadImage3D()));
   connect(ui->pushButton_render3D, SIGNAL(clicked()), this, SLOT(Render3D()));
-  connect(ui->pushButton_clearBuffers, SIGNAL(clicked()), this, SLOT(ClearAllBuffers()));
+  connect(ui->pushButton_startRegionGrowing, SIGNAL(clicked()), this, SLOT(StartRegionGrowingFromSeed()));
 
   // Horizontal sliders
   connect(ui->horizontalSlider_threshold, SIGNAL(valueChanged(int)), this,
@@ -39,8 +39,11 @@ Widget::Widget(QWidget *parent)
   // Initial slider values
   ui->horizontalSlider_center->setValue(0);
   ui->horizontalSlider_windowSize->setValue(1200);
-  ui->horizontalSlider_threshold->setValue(500);
+  ui->horizontalSlider_threshold->setValue(0);
   ui->verticalSlider_depth->setValue(0);
+
+  // Fill 3D image area
+  ui->label_image3D->setPixmap(QPixmap::fromImage(m_qImage));
 }
 
 Widget::~Widget() {
@@ -143,7 +146,7 @@ void Widget::RenderRegionGrowing() {
 
 void Widget::LoadImage3D() {
   QString img_path = QFileDialog::getOpenFileName(
-	this, "Open Image", "../../external/images", "Raw Image Files (*.raw)");
+	this, "Open Image", "../external/images", "Raw Image Files (*.raw)");
 
   if (!m_ctimage.load(img_path).Ok()) {
 	QMessageBox::critical(this, "Error",
@@ -187,6 +190,7 @@ void Widget::Render3D() {
   Update3DRender();
   m_render3dClicked = true;
   m_depthBufferIsRendered = true;
+  m_seedPicked = false;
 }
 
 void Widget::mousePressEvent(QMouseEvent *event) {
@@ -195,10 +199,13 @@ void Widget::mousePressEvent(QMouseEvent *event) {
 
   if (event->button() == Qt::LeftButton) {
 	int depth_at_cursor = m_ctimage.GetDepthBuffer()[local_pos.x() + local_pos.y() * m_qImage.width()];
-	if (ui->label_image3D->rect().contains(local_pos)) {
-	  Eigen::Vector3i seed(local_pos.x(), local_pos.y(), depth_at_cursor);
-	  m_ctimage.RegionGrowing3D(seed, ui->horizontalSlider_threshold->value());
-	  RenderRegionGrowing();
+	if (ui->label_image3D->rect().contains(local_pos) && m_render3dClicked) {
+	  ui->label_currentSeed->setText(
+		"Current Seed [px]:   X: " + QString::number(local_pos.x()) + "   " + "Y: " + QString::number(local_pos.y())
+		  + "   "
+		  + "Depth: " + QString::number(depth_at_cursor));
+	  m_currentSeed = Eigen::Vector3i(local_pos.x(), local_pos.y(), depth_at_cursor);
+	  m_seedPicked = true;
 	}
   }
   if (event->button() == Qt::RightButton) {
@@ -233,16 +240,30 @@ void Widget::mouseMoveEvent(QMouseEvent *event) {
 	  if (event->buttons() == Qt::RightButton) {
 		QPoint position_delta = local_pos - m_currentMousePos;
 		UpdateRotationMatrix(position_delta);
-		m_currentMousePos = local_pos;
 		RenderRegionGrowing();
+		m_currentMousePos = local_pos;
 	  }
 	  // if (event->buttons() != Qt::RightButton) {
-	// 	m_currentMousePos = local_pos;
+	  // 	m_currentMousePos = local_pos;
 	  // }
 	}
   }
 }
+void Widget::StartRegionGrowingFromSeed() {
+  if (!m_render3dClicked) {
+	QMessageBox::critical(this,
+						  "No 3D image available",
+						  "No rendered 3D image available. Please render an image first!");
+	return;
+  }
 
-void Widget::ClearAllBuffers() {
-	m_ctimage.ResetBuffers();
+  if (!m_seedPicked) {
+	QMessageBox::critical(this,
+						  "No seed picked",
+						  "No initial seed has been picked. Please pick a seed by left-clicking on the rendered 3D image.");
+	return;
+  }
+  m_ctimage.RegionGrowing3D(m_currentSeed, ui->horizontalSlider_threshold->value());
+  RenderRegionGrowing();
+
 }
