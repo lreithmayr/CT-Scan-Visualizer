@@ -152,6 +152,22 @@ void Widget::RenderRegionGrowing() {
   ui->label_image3D->setPixmap(QPixmap::fromImage(m_qImage));
 }
 
+void Widget::ShowLabelNextToCursor(QPoint cursor_global_pos, QPoint cursor_local_pos) {
+  m_labelAtCursor->show();
+  m_labelAtCursor->move(cursor_global_pos + QPoint(-50, 40));
+  m_labelAtCursor->setText(QString("(X: %1 | Y: %2 | Z: %3)")
+							 .arg(QString::number(cursor_local_pos.x()), QString::number(cursor_local_pos.y()),
+								  QString::number(ui->verticalSlider_depth->value())));
+  m_labelAtCursor->raise();
+}
+
+void Widget::DrawRadiusAtCursor(QPoint cursor_global_pos, QPoint cursor_local_pos) {
+  QPainter painter(&m_qImage_2d);
+  painter.setPen(Qt::green);
+  painter.drawText(cursor_local_pos.x(), cursor_local_pos.y(), "X");
+  ui->label_imgArea->setPixmap(QPixmap::fromImage(m_qImage_2d));
+}
+
 // =============== Slots ===============
 
 void Widget::LoadImage3D() {
@@ -259,15 +275,10 @@ void Widget::mouseMoveEvent(QMouseEvent *event) {
 	}
 
 	if (ui->label_imgArea->rect().contains(local_pos_2Dslice)) {
-	  m_labelAtCursor->show();
-	  m_labelAtCursor->move(global_pos + QPoint(-50, 40));
-	  m_labelAtCursor->setText(QString("(X: %1 | Y: %2 | Z: %3)")
-								 .arg(QString::number(local_pos_2Dslice.x()), QString::number(local_pos_2Dslice.y()),
-									  QString::number(ui->verticalSlider_depth->value())));
-	  m_labelAtCursor->raise();
+	  ShowLabelNextToCursor(global_pos, local_pos_2Dslice);
 
 	  if (event->buttons() == Qt::LeftButton) {
-		
+		DrawRadiusAtCursor(global_pos, local_pos_2Dslice);
 	  }
 	} else {
 	  m_labelAtCursor->hide();
