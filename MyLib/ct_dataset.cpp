@@ -7,7 +7,6 @@ CTDataset::CTDataset() :
   m_imgData(new int16_t[m_imgHeight * m_imgWidth * m_imgLayers]{0}),
   m_regionBuffer(new int[m_imgHeight * m_imgWidth * m_imgLayers]{0}),
   m_visitedBuffer(new int[m_imgHeight * m_imgWidth * m_imgLayers]{0}),
-  m_surfacePointBuffer(new int[m_imgHeight * m_imgWidth * m_imgLayers]{0}),
   m_depthBuffer(new int[m_imgHeight * m_imgWidth]{0}),
   m_renderedDepthBuffer(new int[m_imgHeight * m_imgWidth]{0}) {
 }
@@ -16,7 +15,6 @@ CTDataset::~CTDataset() {
   delete[] m_imgData;
   delete[] m_regionBuffer;
   delete[] m_visitedBuffer;
-  delete[] m_surfacePointBuffer;
   delete[] m_depthBuffer;
   delete[] m_renderedDepthBuffer;
 }
