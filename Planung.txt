@@ -1,0 +1,11 @@
+Zielbereich:
+	X [px]: 145
+	Y [px]: 180
+	Z [px]: 0
+	Radius [px]: 128
+
+Schonbereich:
+	X [px]: 320
+	Y [px]: 167
+	Z [px]: 0
+	Radius [px]: 47

@@ -392,8 +392,29 @@ void Widget::SelectSafeArea() {
 }
 
 void Widget::WriteAreasToFile() {
-  qDebug() << "Target  Area: " << m_targetArea.x() << " " << m_targetArea.y() << " " << m_targetArea.z() << " " << m_targetArea.w() << "\n";
-  qDebug() << "Safe Area: " << m_safeArea.x() << " " << m_safeArea.y() << " " << m_safeArea.z() << " " << m_safeArea.w() << "\n";
+  QString file_name = QFileDialog::getSaveFileName(this,
+												   tr("Speichern der Planung"),
+												   tr("../Planung.txt"),
+												   tr("Text Files (*.txt)"));
+
+  if (file_name != " ") {
+	QFile file(QFileInfo(file_name).absoluteFilePath());
+
+	if (!file.open(QIODevice::WriteOnly)) {
+	  QMessageBox::critical(this, "Error!", "Failed to save file!");
+	  return;
+	}
+
+	// All OK -> Save data
+	QTextStream out(&file);
+	out << "Zielbereich:" << "\n" << "	" << "X [px]: " << m_targetArea.x() << "\n" << "	" << "Y [px]: " << m_targetArea.y() << "\n"
+		<< "	" << "Z [px]: " << m_targetArea.z() << "\n" << "	" << "Radius [px]: " << m_targetArea.w() << "\n\n";
+
+	out << "Schonbereich:" << "\n" << "	" << "X [px]: " << m_safeArea.x() << "\n" << "	" << "Y [px]: " << m_safeArea.y() << "\n"
+		<< "	" << "Z [px]: " << m_safeArea.z() << "\n" << "	" << "Radius [px]: " << m_safeArea.w();
+
+	file.close();
+  }
 }
 
 
