@@ -90,16 +90,17 @@ class CTDataset {
 
   int *m_visitedBuffer;
 
-  int *m_surfacePointBuffer;
-
   std::vector<Eigen::Vector3i> m_surfacePoints;
 
   std::vector<Eigen::Vector3i> m_allPointsInRegion;
 
+  std::vector<Eigen::Vector3i> m_allRenderedPoints;
+
   Eigen::Vector3d m_regionVolumeCenter;
-
-  int m_minDepth{m_imgLayers - 1};
-
 };
+
+// Global Eigen::IOFormat definition for debugging purposes
+// FIXME: Remove this when done debugging!
+Eigen::IOFormat const CleanFmt(4, 0, ", ", "\n", "[", "]");
 
 #endif  // CT_DATASET_H
