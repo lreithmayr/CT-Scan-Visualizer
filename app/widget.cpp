@@ -7,6 +7,7 @@ Widget::Widget(QWidget *parent)
   : QWidget(parent),
 	ui(new Ui::Widget),
 	m_labelAtCursor(new QLabel(this)),
+	m_qImage_2d(QImage(512, 512, QImage::Format_RGB32)),
 	m_qImage(QImage(512, 512, QImage::Format_RGB32)) {
   // Initialize rotation matrix
   m_rotationMat.setIdentity();
@@ -14,6 +15,7 @@ Widget::Widget(QWidget *parent)
   // Housekeeping
   ui->setupUi(this);
   m_qImage.fill(qRgb(0, 0, 0));
+  m_qImage_2d.fill(qRgb(0, 0, 0));
 
   // Activate mouse tracking
   setMouseTracking(true);
@@ -63,24 +65,24 @@ void Widget::Update2DSlice() {
   int center = ui->horizontalSlider_center->value();
   int window_size = ui->horizontalSlider_windowSize->value();
 
-  for (int y = 0; y < m_qImage.height(); ++y) {
-	for (int x = 0; x < m_qImage.width(); ++x) {
+  for (int y = 0; y < m_qImage_2d.height(); ++y) {
+	for (int x = 0; x < m_qImage_2d.width(); ++x) {
 	  int raw_value =
-		m_ctimage.Data()[(x + y * m_qImage.width()) +
-		  (m_qImage.height() * m_qImage.width() * depth)];
+		m_ctimage.Data()[(x + y * m_qImage_2d.width()) +
+		  (m_qImage_2d.height() * m_qImage_2d.width() * depth)];
 	  if (raw_value > threshold) {
-		m_qImage.setPixel(x, y, qRgb(255, 0, 0));
+		m_qImage_2d.setPixel(x, y, qRgb(255, 0, 0));
 		continue;
 	  }
 	  if (CTDataset::WindowInputValue(raw_value, center, window_size).Ok()) {
 		int windowed_value =
 		  CTDataset::WindowInputValue(raw_value, center, window_size).value();
-		m_qImage.setPixel(x, y,
+		m_qImage_2d.setPixel(x, y,
 						  qRgb(windowed_value, windowed_value, windowed_value));
 	  }
 	}
   }
-  ui->label_imgArea->setPixmap(QPixmap::fromImage(m_qImage));
+  ui->label_imgArea->setPixmap(QPixmap::fromImage(m_qImage_2d));
 }
 
 void Widget::Update2DSliceFromCursor(int depth, int cursor_x, int cursor_y) {
@@ -302,4 +304,6 @@ void Widget::StartRegionGrowingFromSeed() {
   m_ctimage.RegionGrowing3D(m_currentSeed, ui->horizontalSlider_threshold->value());
   RenderRegionGrowing();
 }
+
+
 

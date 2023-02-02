@@ -36,11 +36,14 @@ class Widget : public QWidget {
   void Update3DRender();
   void UpdateRotationMatrix(QPoint const &position_delta);
   void RenderRegionGrowing();
+  void ShowLabelNextToCursor(QPoint cursor_global_pos, QPoint cursor_local_pos);
+  void DrawRadiusAtCursor(QPoint cursor_global_pos, QPoint cursor_local_pos);
 
  private:
   Ui::Widget *ui;
   CTDataset m_ctimage;
   QImage m_qImage;
+  QImage m_qImage_2d;
   bool m_render3dClicked{false};
   bool m_depthBufferIsRendered{false};
   Eigen::Matrix3d m_rotationMat;
