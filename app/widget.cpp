@@ -78,7 +78,7 @@ void Widget::Update2DSlice() {
 		int windowed_value =
 		  CTDataset::WindowInputValue(raw_value, center, window_size).value();
 		m_qImage_2d.setPixel(x, y,
-						  qRgb(windowed_value, windowed_value, windowed_value));
+							 qRgb(windowed_value, windowed_value, windowed_value));
 	  }
 	}
   }
@@ -161,11 +161,17 @@ void Widget::ShowLabelNextToCursor(QPoint cursor_global_pos, QPoint cursor_local
   m_labelAtCursor->raise();
 }
 
-void Widget::DrawRadiusAtCursor(QPoint cursor_global_pos, QPoint cursor_local_pos) {
+void Widget::DrawCircleAtCursor(QPoint cursor_global_pos, QPoint cursor_local_pos) {
   QPainter painter(&m_qImage_2d);
   painter.setPen(Qt::green);
-  painter.drawText(cursor_local_pos.x(), cursor_local_pos.y(), "X");
+
+  auto current_radius = cursor_local_pos - m_currentMousePos2Dslice;
+  painter.drawEllipse(m_currentMousePos2Dslice, current_radius.x(), current_radius.x());
   ui->label_imgArea->setPixmap(QPixmap::fromImage(m_qImage_2d));
+  m_targetArea.x() = m_currentMousePos2Dslice.x();
+  m_targetArea.y() = m_currentMousePos2Dslice.y();
+  m_targetArea.z() = ui->verticalSlider_depth->value();
+  m_targetArea.w() = std::abs(current_radius.x());
 }
 
 // =============== Slots ===============
@@ -221,21 +227,30 @@ void Widget::Render3D() {
 
 void Widget::mousePressEvent(QMouseEvent *event) {
   QPoint global_pos = event->pos();
-  QPoint local_pos = ui->label_image3D->mapFromParent(global_pos);
+  QPoint local_pos_3Dimg = ui->label_image3D->mapFromParent(global_pos);
+  QPoint local_pos_2Dslice = ui->label_imgArea->mapFromParent(global_pos);
 
-  if (ui->label_image3D->rect().contains(local_pos) && m_render3dClicked) {
-	if (event->button() == Qt::LeftButton) {
-	  int depth_at_cursor = m_ctimage.GetDepthBuffer()[local_pos.x() + local_pos.y() * m_qImage.width()];
-	  ui->label_currentSeed->setText(
-		"Current Seed [px]:   X: " + QString::number(local_pos.x()) + "   " + "Y: " + QString::number(local_pos.y())
-		  + "   "
-		  + "Depth: " + QString::number(depth_at_cursor));
-	  m_currentSeed = Eigen::Vector3i(local_pos.x(), local_pos.y(), depth_at_cursor);
-	  m_seedPicked = true;
+  if (m_render3dClicked) {
+	if (ui->label_image3D->rect().contains(local_pos_3Dimg)) {
+	  if (event->button() == Qt::LeftButton) {
+		int depth_at_cursor = m_ctimage.GetDepthBuffer()[local_pos_3Dimg.x() + local_pos_3Dimg.y() * m_qImage.width()];
+		ui->label_currentSeed->setText(
+		  "Current Seed [px]:   X: " + QString::number(local_pos_3Dimg.x()) + "   " + "Y: "
+			+ QString::number(local_pos_3Dimg.y())
+			+ "   "
+			+ "Depth: " + QString::number(depth_at_cursor));
+		m_currentSeed = Eigen::Vector3i(local_pos_3Dimg.x(), local_pos_3Dimg.y(), depth_at_cursor);
+		m_seedPicked = true;
+	  }
+	  if (event->button() == Qt::RightButton) {
+		m_currentMousePos = local_pos_3Dimg;
+		qDebug() << "RMB clicked at: " << m_currentMousePos << "\n";
+	  }
 	}
-	if (event->button() == Qt::RightButton) {
-	  m_currentMousePos = local_pos;
-	  qDebug() << "RMB clicked at: " << m_currentMousePos << "\n";
+	if (ui->label_imgArea->rect().contains(local_pos_2Dslice)) {
+	  if (event->button() == Qt::LeftButton) {
+		m_currentMousePos2Dslice = local_pos_2Dslice;
+	  }
 	}
   }
 }
@@ -278,7 +293,8 @@ void Widget::mouseMoveEvent(QMouseEvent *event) {
 	  ShowLabelNextToCursor(global_pos, local_pos_2Dslice);
 
 	  if (event->buttons() == Qt::LeftButton) {
-		DrawRadiusAtCursor(global_pos, local_pos_2Dslice);
+		Update2DSlice();
+		DrawCircleAtCursor(global_pos, local_pos_2Dslice);
 	  }
 	} else {
 	  m_labelAtCursor->hide();
@@ -289,12 +305,18 @@ void Widget::mouseMoveEvent(QMouseEvent *event) {
 void Widget::mouseReleaseEvent(QMouseEvent *event) {
   QPoint global_pos = event->pos();
   QPoint local_pos = ui->label_image3D->mapFromParent(global_pos);
+  QPoint local_pos_2Dslice = ui->label_imgArea->mapFromParent(global_pos);
 
   if (ui->label_image3D->rect().contains(local_pos)) {
 	if (event->button() == Qt::RightButton) {
 	  m_currentMousePos = local_pos;
 	  qDebug() << "RMB released at: " << m_currentMousePos << "\n";
 	}
+  }
+
+  if (ui->label_imgArea->rect().contains(local_pos_2Dslice)) {
+	qDebug() << m_targetArea.x() << " " << m_targetArea.y() << " " << m_targetArea.z() << " " << m_targetArea.w()
+			 << "\n";
   }
 }
 

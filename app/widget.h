@@ -4,7 +4,6 @@
 #include "ct_dataset.h"
 
 #include <ui_widget.h>
-
 #include <QFile>
 #include <QFileDialog>
 #include <QMessageBox>
@@ -37,7 +36,7 @@ class Widget : public QWidget {
   void UpdateRotationMatrix(QPoint const &position_delta);
   void RenderRegionGrowing();
   void ShowLabelNextToCursor(QPoint cursor_global_pos, QPoint cursor_local_pos);
-  void DrawRadiusAtCursor(QPoint cursor_global_pos, QPoint cursor_local_pos);
+  void DrawCircleAtCursor(QPoint cursor_global_pos, QPoint cursor_local_pos);
 
  private:
   Ui::Widget *ui;
@@ -48,9 +47,11 @@ class Widget : public QWidget {
   bool m_depthBufferIsRendered{false};
   Eigen::Matrix3d m_rotationMat;
   QPoint m_currentMousePos{0, 0};
+  QPoint m_currentMousePos2Dslice;
   Eigen::Vector3i m_currentSeed;
   bool m_seedPicked{false};
   QLabel *m_labelAtCursor;
+  Eigen::Vector4i m_targetArea;
 
  private slots:
   void LoadImage3D();
