@@ -63,7 +63,8 @@ class CTDataset {
 
   Status FindPointCloudCenter();
 
-  void ResetBuffers();
+  static Eigen::Isometry3d EstimateRigidTransformation3D(const std::vector<Eigen::Vector3d> &source_points,
+														 const std::vector<Eigen::Vector3d> &target_points);
 
  private:
   /// Height of the provided CT image (in pixels)
