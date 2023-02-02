@@ -39,6 +39,8 @@ class CTDataset {
 
   [[nodiscard]] int *GetRegionGrowingBuffer() const;
 
+  void GetAllRenderedPoints();
+
   /// Normalize pixel values to a pre-defined grey-value range
   static StatusOr<int> WindowInputValue(const int &input_value, const int &center, const int &window_size);
 

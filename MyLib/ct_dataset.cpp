@@ -153,27 +153,25 @@ Status CTDataset::CalculateDepthBuffer(int threshold) {
 }
 
 Status CTDataset::CalculateDepthBufferFromRegionGrowing(Eigen::Matrix3d &rotation_mat) {
-  qDebug() << "Calculating depth buffer from region growing!" << "\n";
   std::fill_n(m_depthBuffer, m_imgWidth * m_imgHeight, m_imgLayers - 1);
+  std::cout << rotation_mat.format(CleanFmt) << "\n=====\n";
 
   if (m_surfacePoints.empty()) {
 	qDebug() << "No surface points!" << "\n";
 	return Status(StatusCode::BUFFER_EMPTY);
   }
 
-  int buffer_size = 0;
   Eigen::Vector3d pt_rot(0, 0, 0);
-  qDebug() << "Iterating through surface points." << "\n";
-  for (auto &surface_point : m_surfacePoints) {
-	pt_rot = rotation_mat * (surface_point.cast<double>() - m_regionVolumeCenter) + m_regionVolumeCenter;
-	if (static_cast<int>(pt_rot.x()) < m_imgWidth && static_cast<int>(pt_rot.y()) < m_imgHeight) {
+  for (auto &point : m_surfacePoints) {
+	pt_rot = (rotation_mat * (point.cast<double>() - m_regionVolumeCenter)) + m_regionVolumeCenter;
+	if ((static_cast<int>(pt_rot.x()) < m_imgWidth && static_cast<int>(pt_rot.x()) >= 0) &&
+	  (static_cast<int>(pt_rot.y()) < m_imgHeight && static_cast<int>(pt_rot.y()) >= 0)) {
 	  m_depthBuffer[static_cast<int>(pt_rot.x()) + static_cast<int>(pt_rot.y()) * m_imgWidth]
-		= m_depthBuffer[static_cast<int>(pt_rot.x()) - 1 + static_cast<int>(pt_rot.y()) * m_imgWidth]
-		= m_depthBuffer[static_cast<int>(pt_rot.x()) + 1 + static_cast<int>(pt_rot.y()) * m_imgWidth]
-		= m_depthBuffer[static_cast<int>(pt_rot.x()) + static_cast<int>(pt_rot.y()) - 1 * m_imgWidth]
-		= m_depthBuffer[static_cast<int>(pt_rot.x()) + static_cast<int>(pt_rot.y()) + 1 * m_imgWidth]
+		= m_depthBuffer[(static_cast<int>(pt_rot.x()) - 1) + static_cast<int>(pt_rot.y()) * m_imgWidth]
+		= m_depthBuffer[(static_cast<int>(pt_rot.x()) + 1) + static_cast<int>(pt_rot.y()) * m_imgWidth]
+		= m_depthBuffer[static_cast<int>(pt_rot.x()) + (static_cast<int>(pt_rot.y()) - 1) * m_imgWidth]
+		= m_depthBuffer[static_cast<int>(pt_rot.x()) + (static_cast<int>(pt_rot.y()) + 1) * m_imgWidth]
 		= static_cast<int>(pt_rot.z());
-	  buffer_size++;
 	}
   }
 
@@ -182,8 +180,6 @@ Status CTDataset::CalculateDepthBufferFromRegionGrowing(Eigen::Matrix3d &rotatio
 	return Status(StatusCode::BUFFER_EMPTY);
   }
 
-  qDebug() << "RG depth buffer calculated!" << "\n" << "Number of points that will be rendered: " << buffer_size
-		   << "\n";
   return Status(StatusCode::OK);
 }
 
@@ -235,7 +231,6 @@ Status CTDataset::RenderDepthBuffer() {
 	return Status(StatusCode::BUFFER_EMPTY);
   }
 
-  qDebug() << "Depth buffer rendered!" << "\n";
   return Status(StatusCode::OK);
 }
 
@@ -264,17 +259,15 @@ Status CTDataset::FindSurfacePoints() {
 			&& m_regionBuffer[x + y * m_imgWidth + (m_imgHeight * m_imgWidth * (d + 1))] == 1) {
 			continue;
 		  }
+		  Eigen::Vector3i surface_point;
 		  surface_point.x() = x;
 		  surface_point.y() = y;
 		  surface_point.z() = d;
 		  m_surfacePoints.push_back(surface_point);
-
-		  if (d < m_minDepth) m_minDepth = d;
 		}
 	  }
 	}
   }
-  qDebug() << "Minimum depth: " << m_minDepth << "\n";
   return Status(StatusCode::OK);
 }
 
@@ -308,8 +301,6 @@ Status CTDataset::FindPointCloudCenter() {
 	y_tot += pt.y();
 	z_tot += pt.z();
   }
-
-  qDebug() << "x_tot: " << x_tot << "y_tot: " << y_tot << "z_tot: " << z_tot << "\n";
 
   auto region_size = static_cast<double>(m_allPointsInRegion.size());
 
