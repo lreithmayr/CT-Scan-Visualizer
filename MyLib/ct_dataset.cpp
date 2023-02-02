@@ -191,30 +191,29 @@ Status CTDataset::CalculateDepthBufferFromRegionGrowing(Eigen::Matrix3d &rotatio
  * @return StatusCode::OK if the result buffer is not empty, else StatusCode::BUFFER_EMPTY
  */
 Status CTDataset::RenderDepthBuffer() {
-  qDebug() << "Rendering depth buffer!" << "\n";
-
   if (m_depthBuffer == nullptr) {
 	qDebug() << "Depth buffer empty!" << "\n";
 	return Status(StatusCode::BUFFER_EMPTY);
   }
 
-  auto s_x = 2;
-  auto s_y = 2;
-  auto T_x = 0;
-  auto T_y = 0;
-  auto sxTy_sq = 0;
-  auto syTx_sq = 0;
-  auto nom = 255 * s_x * s_y;
+  int s_x = 8;
+  int s_y = 8;
+  int T_x = 0;
+  int T_y = 0;
+  double sxTy_sq = 0;
+  double syTx_sq = 0;
+  double nom = 255 * s_x * s_y;
   double denom = 0;
   double inv = 0;
   int I_ref = 0;
 
-  auto s_x_sq = s_x * s_x;
-  auto s_y_sq = s_y * s_y;
-  auto s_pow_four = s_x_sq * s_y_sq;
+  double s_x_sq = s_x * s_x;
+  double s_y_sq = s_y * s_y;
+  double s_pow_four = s_x_sq * s_y_sq;
 
-  for (int y = 1; y < m_imgHeight - 1; ++y) {
-	for (int x = 1; x < m_imgWidth - 1; ++x) {
+  for (int y = 0; y < m_imgHeight; ++y) {
+	for (int x = 0; x < m_imgWidth; ++x) {
+	  auto current_point = x + y * m_imgWidth;
 	  T_x = m_depthBuffer[(x + 1) + y * m_imgWidth] - m_depthBuffer[(x - 1) + y * m_imgWidth];
 	  T_y = m_depthBuffer[x + (y + 1) * m_imgWidth] - m_depthBuffer[x + (y - 1) * m_imgWidth];
 	  syTx_sq = s_y_sq * T_x * T_x;
@@ -222,7 +221,7 @@ Status CTDataset::RenderDepthBuffer() {
 	  denom = std::sqrt(syTx_sq + sxTy_sq + s_pow_four);
 	  inv = 1 / denom;
 	  I_ref = nom * inv;
-	  m_renderedDepthBuffer[x + y * m_imgWidth] = I_ref;
+	  m_renderedDepthBuffer[current_point] = I_ref;
 	}
   }
 
