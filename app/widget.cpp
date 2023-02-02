@@ -30,6 +30,9 @@ Widget::Widget(QWidget *parent)
   // Buttons
   connect(ui->pushButton_render3D, SIGNAL(clicked()), this, SLOT(Render3D()));
   connect(ui->pushButton_startRegionGrowing, SIGNAL(clicked()), this, SLOT(StartRegionGrowingFromSeed()));
+  connect(ui->pushButton_targetArea, SIGNAL(clicked()), this, SLOT(SelectTargetArea()));
+  connect(ui->pushButton_safeArea, SIGNAL(clicked()), this, SLOT(SelectSafeArea()));
+  connect(ui->pushButton_writeAreas, SIGNAL(clicked()), this, SLOT(WriteAreasToFile()));
 
   // Horizontal sliders
   connect(ui->horizontalSlider_threshold, SIGNAL(valueChanged(int)), this,
@@ -51,6 +54,7 @@ Widget::Widget(QWidget *parent)
 
   // Fill 3D image area
   ui->label_image3D->setPixmap(QPixmap::fromImage(m_qImage));
+  ui->label_imgArea->setPixmap(QPixmap::fromImage(m_qImage_2d));
 }
 
 Widget::~Widget() {
@@ -82,6 +86,18 @@ void Widget::Update2DSlice() {
 	  }
 	}
   }
+
+  if (m_targetAreaHasBeenDrawn) {
+	QPainter painter(&m_qImage_2d);
+	painter.setPen(Qt::white);
+	painter.drawEllipse(QPoint(m_targetArea.x(), m_targetArea.y()), m_targetArea.w(), m_targetArea.w());
+  }
+  if (m_safeAreaHasBeenDrawn) {
+	QPainter painter(&m_qImage_2d);
+	painter.setPen(Qt::green);
+	painter.drawEllipse(QPoint(m_safeArea.x(), m_safeArea.y()), m_safeArea.w(), m_safeArea.w());
+  }
+
   ui->label_imgArea->setPixmap(QPixmap::fromImage(m_qImage_2d));
 }
 
@@ -152,7 +168,7 @@ void Widget::RenderRegionGrowing() {
   ui->label_image3D->setPixmap(QPixmap::fromImage(m_qImage));
 }
 
-void Widget::ShowLabelNextToCursor(QPoint cursor_global_pos, QPoint cursor_local_pos) {
+void Widget::ShowLabelNextToCursor(const QPoint &cursor_global_pos, const QPoint &cursor_local_pos) {
   m_labelAtCursor->show();
   m_labelAtCursor->move(cursor_global_pos + QPoint(-50, 40));
   m_labelAtCursor->setText(QString("(X: %1 | Y: %2 | Z: %3)")
@@ -161,17 +177,26 @@ void Widget::ShowLabelNextToCursor(QPoint cursor_global_pos, QPoint cursor_local
   m_labelAtCursor->raise();
 }
 
-void Widget::DrawCircleAtCursor(QPoint cursor_global_pos, QPoint cursor_local_pos) {
+void Widget::DrawCircleAtCursor(const QPoint &cursor_local_pos, Qt::GlobalColor const &color) {
   QPainter painter(&m_qImage_2d);
-  painter.setPen(Qt::green);
+  painter.setPen(color);
 
   auto current_radius = cursor_local_pos - m_currentMousePos2Dslice;
   painter.drawEllipse(m_currentMousePos2Dslice, current_radius.x(), current_radius.x());
   ui->label_imgArea->setPixmap(QPixmap::fromImage(m_qImage_2d));
-  m_targetArea.x() = m_currentMousePos2Dslice.x();
-  m_targetArea.y() = m_currentMousePos2Dslice.y();
-  m_targetArea.z() = ui->verticalSlider_depth->value();
-  m_targetArea.w() = std::abs(current_radius.x());
+
+  if (m_selectTargetArea) {
+	m_targetArea.x() = m_currentMousePos2Dslice.x();
+	m_targetArea.y() = m_currentMousePos2Dslice.y();
+	m_targetArea.z() = ui->verticalSlider_depth->value();
+	m_targetArea.w() = std::abs(current_radius.x());
+  }
+  if (m_selectSafeArea) {
+	m_safeArea.x() = m_currentMousePos2Dslice.x();
+	m_safeArea.y() = m_currentMousePos2Dslice.y();
+	m_safeArea.z() = ui->verticalSlider_depth->value();
+	m_safeArea.w() = std::abs(current_radius.x());
+  }
 }
 
 // =============== Slots ===============
@@ -250,6 +275,12 @@ void Widget::mousePressEvent(QMouseEvent *event) {
 	if (ui->label_imgArea->rect().contains(local_pos_2Dslice)) {
 	  if (event->button() == Qt::LeftButton) {
 		m_currentMousePos2Dslice = local_pos_2Dslice;
+		if (m_targetAreaHasBeenDrawn && m_selectTargetArea) {
+		  m_targetAreaHasBeenDrawn = false;
+		}
+		if (m_safeAreaHasBeenDrawn && m_selectSafeArea) {
+		  m_safeAreaHasBeenDrawn = false;
+		}
 	  }
 	}
   }
@@ -293,8 +324,14 @@ void Widget::mouseMoveEvent(QMouseEvent *event) {
 	  ShowLabelNextToCursor(global_pos, local_pos_2Dslice);
 
 	  if (event->buttons() == Qt::LeftButton) {
-		Update2DSlice();
-		DrawCircleAtCursor(global_pos, local_pos_2Dslice);
+		if (m_selectTargetArea) {
+		  Update2DSlice();
+		  DrawCircleAtCursor(local_pos_2Dslice, Qt::GlobalColor::white);
+		}
+		if (m_selectSafeArea) {
+		  Update2DSlice();
+		  DrawCircleAtCursor(local_pos_2Dslice, Qt::GlobalColor::green);
+		}
 	  }
 	} else {
 	  m_labelAtCursor->hide();
@@ -315,8 +352,12 @@ void Widget::mouseReleaseEvent(QMouseEvent *event) {
   }
 
   if (ui->label_imgArea->rect().contains(local_pos_2Dslice)) {
-	qDebug() << m_targetArea.x() << " " << m_targetArea.y() << " " << m_targetArea.z() << " " << m_targetArea.w()
-			 << "\n";
+	if (m_selectTargetArea) {
+	  m_targetAreaHasBeenDrawn = true;
+	}
+	if (m_selectSafeArea) {
+	  m_safeAreaHasBeenDrawn = true;
+	}
   }
 }
 
@@ -336,6 +377,23 @@ void Widget::StartRegionGrowingFromSeed() {
   }
   m_ctimage.RegionGrowing3D(m_currentSeed, ui->horizontalSlider_threshold->value());
   RenderRegionGrowing();
+}
+
+void Widget::SelectTargetArea() {
+  m_selectSafeArea = false;
+  m_selectTargetArea = true;
+  m_targetAreaHasBeenDrawn = false;
+}
+
+void Widget::SelectSafeArea() {
+  m_selectTargetArea = false;
+  m_selectSafeArea = true;
+  m_safeAreaHasBeenDrawn = false;
+}
+
+void Widget::WriteAreasToFile() {
+  qDebug() << "Target  Area: " << m_targetArea.x() << " " << m_targetArea.y() << " " << m_targetArea.z() << " " << m_targetArea.w() << "\n";
+  qDebug() << "Safe Area: " << m_safeArea.x() << " " << m_safeArea.y() << " " << m_safeArea.z() << " " << m_safeArea.w() << "\n";
 }
 
 

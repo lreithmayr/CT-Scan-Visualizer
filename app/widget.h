@@ -35,8 +35,8 @@ class Widget : public QWidget {
   void Update3DRender();
   void UpdateRotationMatrix(QPoint const &position_delta);
   void RenderRegionGrowing();
-  void ShowLabelNextToCursor(QPoint cursor_global_pos, QPoint cursor_local_pos);
-  void DrawCircleAtCursor(QPoint cursor_global_pos, QPoint cursor_local_pos);
+  void ShowLabelNextToCursor(const QPoint &cursor_global_pos, const QPoint &cursor_local_pos);
+  void DrawCircleAtCursor(const QPoint &cursor_local_pos, Qt::GlobalColor const &color);
 
  private:
   Ui::Widget *ui;
@@ -52,6 +52,11 @@ class Widget : public QWidget {
   bool m_seedPicked{false};
   QLabel *m_labelAtCursor;
   Eigen::Vector4i m_targetArea;
+  Eigen::Vector4i m_safeArea;
+  bool m_selectTargetArea{false};
+  bool m_selectSafeArea{false};
+  bool m_targetAreaHasBeenDrawn{false};
+  bool m_safeAreaHasBeenDrawn{false};
 
  private slots:
   void LoadImage3D();
@@ -64,6 +69,9 @@ class Widget : public QWidget {
   void mouseMoveEvent(QMouseEvent *event) override;
   void mouseReleaseEvent(QMouseEvent *event) override;
   void StartRegionGrowingFromSeed();
+  void SelectTargetArea();
+  void SelectSafeArea();
+  void WriteAreasToFile();
 };
 
 #endif //WIDGET_H
