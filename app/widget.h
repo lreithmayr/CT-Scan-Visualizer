@@ -15,6 +15,7 @@
 #include <QDataStream>
 
 #include <iostream>
+#include <QtMath>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -46,6 +47,7 @@ class Widget : public QWidget {
   QPoint m_currentMousePos{0, 0};
   Eigen::Vector3i m_currentSeed;
   bool m_seedPicked{false};
+  QLabel *m_labelAtCursor;
 
  private slots:
   void LoadImage3D();
@@ -56,6 +58,7 @@ class Widget : public QWidget {
   void Render3D();
   void mousePressEvent(QMouseEvent *event) override;
   void mouseMoveEvent(QMouseEvent *event) override;
+  void mouseReleaseEvent(QMouseEvent *event) override;
   void StartRegionGrowingFromSeed();
 };
 

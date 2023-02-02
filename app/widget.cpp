@@ -6,6 +6,7 @@
 Widget::Widget(QWidget *parent)
   : QWidget(parent),
 	ui(new Ui::Widget),
+	m_labelAtCursor(new QLabel(this)),
 	m_qImage(QImage(512, 512, QImage::Format_RGB32)) {
   // Initialize rotation matrix
   m_rotationMat.setIdentity();
@@ -17,10 +18,14 @@ Widget::Widget(QWidget *parent)
   // Activate mouse tracking
   setMouseTracking(true);
   ui->label_image3D->setMouseTracking(true);
+  ui->label_imgArea->setMouseTracking(true);
+
+  // Initialize the cursor label
+  m_labelAtCursor->resize(170, 40);
+  m_labelAtCursor->setAutoFillBackground(false);
+  m_labelAtCursor->setStyleSheet("color: white");
 
   // Buttons
-  connect(ui->pushButton_loadImage3D, SIGNAL(clicked()), this,
-		  SLOT(LoadImage3D()));
   connect(ui->pushButton_render3D, SIGNAL(clicked()), this, SLOT(Render3D()));
   connect(ui->pushButton_startRegionGrowing, SIGNAL(clicked()), this, SLOT(StartRegionGrowingFromSeed()));
 
@@ -207,46 +212,76 @@ void Widget::mousePressEvent(QMouseEvent *event) {
 	  m_currentSeed = Eigen::Vector3i(local_pos.x(), local_pos.y(), depth_at_cursor);
 	  m_seedPicked = true;
 	}
-  }
-  if (event->button() == Qt::RightButton) {
-	m_currentMousePos = local_pos;
+	if (event->button() == Qt::RightButton) {
+	  m_currentMousePos = local_pos;
+	  qDebug() << "RMB clicked at: " << m_currentMousePos << "\n";
+	}
   }
 }
 
 void Widget::mouseMoveEvent(QMouseEvent *event) {
+
   if (m_render3dClicked) {
 	QPoint global_pos = event->pos();
-	QPoint local_pos = ui->label_image3D->mapFromParent(global_pos);
+	QPoint local_pos_3Dimg = ui->label_image3D->mapFromParent(global_pos);
+	QPoint local_pos_2Dslice = ui->label_imgArea->mapFromParent(global_pos);
 
-	int cursor_x_px = local_pos.x();
-	double cursor_x_mm = cursor_x_px * 0.523; // Pixel x position * Voxel length in x
-	int cursor_y_px = local_pos.y();
-	double cursor_y_mm = cursor_y_px * 0.523; // Pixel y position * Voxel length in y
+	int cursor_x_px_3Dimg = local_pos_3Dimg.x();
+	double cursor_x_mm_3Dimg = cursor_x_px_3Dimg * 0.523; // Pixel x position * Voxel length in x
+	int cursor_y_px_3Dimg = local_pos_3Dimg.y();
+	double cursor_y_mm_3Dimg = cursor_y_px_3Dimg * 0.523; // Pixel y position * Voxel length in y
 
-	int depth_at_cursor = m_ctimage.GetDepthBuffer()[local_pos.x() + local_pos.y() * m_qImage.width()];
+	int depth_at_cursor = m_ctimage.GetDepthBuffer()[local_pos_3Dimg.x() + local_pos_3Dimg.y() * m_qImage.width()];
 	auto depth_mm = depth_at_cursor * 0.7; // Depth value * Voxel height
 
-	if (ui->label_image3D->rect().contains(local_pos)) {
-	  ui->label_xPos->setText("X [px]: " + QString::number(cursor_x_px));
-	  ui->label_xPos_mm->setText("X [mm]: " + QString::number(cursor_x_mm));
-	  ui->label_yPos->setText("Y [px]: " + QString::number(cursor_y_px));
-	  ui->label_yPos_mm->setText("Y [mm]: " + QString::number(cursor_y_mm));
+	if (ui->label_image3D->rect().contains(local_pos_3Dimg)) {
+	  ui->label_xPos->setText("X [px]: " + QString::number(cursor_x_px_3Dimg));
+	  ui->label_xPos_mm->setText("X [mm]: " + QString::number(cursor_x_mm_3Dimg));
+	  ui->label_yPos->setText("Y [px]: " + QString::number(cursor_y_px_3Dimg));
+	  ui->label_yPos_mm->setText("Y [mm]: " + QString::number(cursor_y_mm_3Dimg));
 
 	  if (m_depthBufferIsRendered) {
 		ui->label_depthPos->setText("Depth [px]: " + QString::number(depth_at_cursor));
 		ui->label_depthPos_mm->setText("Depth [mm]: " + QString::number(depth_mm));
-		// Update2DSliceFromCursor(depth_at_cursor, cursor_x_px, cursor_y_px);
-	  }
 
-	  if (event->buttons() == Qt::RightButton) {
-		QPoint position_delta = local_pos - m_currentMousePos;
-		UpdateRotationMatrix(position_delta);
-		RenderRegionGrowing();
-		m_currentMousePos = local_pos;
+		if (event->buttons() == Qt::RightButton) {
+		  QPoint position_delta = m_currentMousePos - local_pos_3Dimg;
+		  UpdateRotationMatrix(position_delta);
+		  RenderRegionGrowing();
+		  m_currentMousePos = local_pos_3Dimg;
+		}
 	  }
+	}
+
+	if (ui->label_imgArea->rect().contains(local_pos_2Dslice)) {
+	  m_labelAtCursor->show();
+	  m_labelAtCursor->move(global_pos + QPoint(-50, 40));
+	  m_labelAtCursor->setText(QString("(X: %1 | Y: %2 | Z: %3)")
+								 .arg(QString::number(local_pos_2Dslice.x()), QString::number(local_pos_2Dslice.y()),
+									  QString::number(ui->verticalSlider_depth->value())));
+	  m_labelAtCursor->raise();
+
+	  if (event->buttons() == Qt::LeftButton) {
+		
+	  }
+	} else {
+	  m_labelAtCursor->hide();
 	}
   }
 }
+
+void Widget::mouseReleaseEvent(QMouseEvent *event) {
+  QPoint global_pos = event->pos();
+  QPoint local_pos = ui->label_image3D->mapFromParent(global_pos);
+
+  if (ui->label_image3D->rect().contains(local_pos)) {
+	if (event->button() == Qt::RightButton) {
+	  m_currentMousePos = local_pos;
+	  qDebug() << "RMB released at: " << m_currentMousePos << "\n";
+	}
+  }
+}
+
 void Widget::StartRegionGrowingFromSeed() {
   if (!m_render3dClicked) {
 	QMessageBox::critical(this,
@@ -263,5 +298,5 @@ void Widget::StartRegionGrowingFromSeed() {
   }
   m_ctimage.RegionGrowing3D(m_currentSeed, ui->horizontalSlider_threshold->value());
   RenderRegionGrowing();
-
 }
+

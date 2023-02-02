@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1123</width>
+    <width>1132</width>
     <height>781</height>
    </rect>
   </property>
@@ -32,8 +32,8 @@
   <widget class="QSlider" name="horizontalSlider_center">
    <property name="geometry">
     <rect>
-     <x>30</x>
-     <y>90</y>
+     <x>220</x>
+     <y>130</y>
      <width>160</width>
      <height>16</height>
     </rect>
@@ -57,8 +57,8 @@
   <widget class="QSlider" name="horizontalSlider_windowSize">
    <property name="geometry">
     <rect>
-     <x>30</x>
-     <y>120</y>
+     <x>220</x>
+     <y>160</y>
      <width>160</width>
      <height>16</height>
     </rect>
@@ -76,8 +76,8 @@
   <widget class="QLabel" name="label_sliderCenter">
    <property name="geometry">
     <rect>
-     <x>210</x>
-     <y>80</y>
+     <x>400</x>
+     <y>128</y>
      <width>141</width>
      <height>19</height>
     </rect>
@@ -89,8 +89,8 @@
   <widget class="QLabel" name="label_sliderWSize">
    <property name="geometry">
     <rect>
-     <x>210</x>
-     <y>110</y>
+     <x>400</x>
+     <y>158</y>
      <width>141</width>
      <height>19</height>
     </rect>
@@ -99,24 +99,11 @@
     <string>TextLabel</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton_loadImage3D">
-   <property name="geometry">
-    <rect>
-     <x>180</x>
-     <y>20</y>
-     <width>141</width>
-     <height>27</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Load Depth Image</string>
-   </property>
-  </widget>
   <widget class="QSlider" name="verticalSlider_depth">
    <property name="geometry">
     <rect>
-     <x>390</x>
-     <y>30</y>
+     <x>160</x>
+     <y>50</y>
      <width>16</width>
      <height>160</height>
     </rect>
@@ -134,9 +121,9 @@
   <widget class="QLabel" name="label_currentDepth">
    <property name="geometry">
     <rect>
-     <x>430</x>
-     <y>100</y>
-     <width>181</width>
+     <x>60</x>
+     <y>120</y>
+     <width>91</width>
      <height>19</height>
     </rect>
    </property>
@@ -147,8 +134,8 @@
   <widget class="QSlider" name="horizontalSlider_threshold">
    <property name="geometry">
     <rect>
-     <x>30</x>
-     <y>150</y>
+     <x>220</x>
+     <y>190</y>
      <width>160</width>
      <height>16</height>
     </rect>
@@ -172,8 +159,8 @@
   <widget class="QLabel" name="label_sliderThreshold">
    <property name="geometry">
     <rect>
-     <x>210</x>
-     <y>140</y>
+     <x>400</x>
+     <y>188</y>
      <width>141</width>
      <height>19</height>
     </rect>
@@ -201,21 +188,21 @@
   <widget class="QPushButton" name="pushButton_render3D">
    <property name="geometry">
     <rect>
-     <x>760</x>
-     <y>30</y>
-     <width>171</width>
-     <height>27</height>
+     <x>440</x>
+     <y>6</y>
+     <width>221</width>
+     <height>41</height>
     </rect>
    </property>
    <property name="text">
-    <string>Render 3D Image</string>
+    <string>Load and Render 3D Image</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_xPos">
    <property name="geometry">
     <rect>
      <x>590</x>
-     <y>130</y>
+     <y>120</y>
      <width>91</width>
      <height>21</height>
     </rect>
@@ -228,7 +215,7 @@
    <property name="geometry">
     <rect>
      <x>730</x>
-     <y>130</y>
+     <y>120</y>
      <width>91</width>
      <height>19</height>
     </rect>
@@ -241,7 +228,7 @@
    <property name="geometry">
     <rect>
      <x>870</x>
-     <y>130</y>
+     <y>120</y>
      <width>151</width>
      <height>19</height>
     </rect>
@@ -254,7 +241,7 @@
    <property name="geometry">
     <rect>
      <x>730</x>
-     <y>170</y>
+     <y>160</y>
      <width>131</width>
      <height>19</height>
     </rect>
@@ -267,7 +254,7 @@
    <property name="geometry">
     <rect>
      <x>590</x>
-     <y>170</y>
+     <y>160</y>
      <width>131</width>
      <height>21</height>
     </rect>
@@ -280,7 +267,7 @@
    <property name="geometry">
     <rect>
      <x>870</x>
-     <y>170</y>
+     <y>160</y>
      <width>231</width>
      <height>19</height>
     </rect>
@@ -292,9 +279,9 @@
   <widget class="QPushButton" name="pushButton_startRegionGrowing">
    <property name="geometry">
     <rect>
-     <x>680</x>
-     <y>70</y>
-     <width>311</width>
+     <x>390</x>
+     <y>60</y>
+     <width>321</width>
      <height>41</height>
     </rect>
    </property>
@@ -306,10 +293,16 @@
    <property name="geometry">
     <rect>
      <x>590</x>
-     <y>200</y>
-     <width>531</width>
-     <height>21</height>
+     <y>189</y>
+     <width>361</width>
+     <height>31</height>
     </rect>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::Box</enum>
+   </property>
+   <property name="lineWidth">
+    <number>2</number>
    </property>
    <property name="text">
     <string>Current Seed [px]: </string>
