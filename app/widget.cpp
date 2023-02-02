@@ -128,8 +128,11 @@ void Widget::Update3DRender() {
 }
 
 void Widget::UpdateRotationMatrix(QPoint const &position_delta) {
-  m_rotationMat = Eigen::AngleAxisd(position_delta.y() / 180. * M_PI, Eigen::Vector3d::UnitX())
-	* Eigen::AngleAxisd(position_delta.x() / 180. * M_PI, -Eigen::Vector3d::UnitY()) * m_rotationMat;
+  m_rotationMat = Eigen::AngleAxisd(static_cast<double>(position_delta.y() * 0.5f) / static_cast<double>(180) * M_PI,
+									Eigen::Vector3d::UnitX())
+	* Eigen::AngleAxisd(static_cast<double>(position_delta.x() * 0.5f) / static_cast<double>(180) * M_PI,
+						-Eigen::Vector3d::UnitY())
+	* m_rotationMat;
 }
 
 void Widget::RenderRegionGrowing() {
@@ -202,9 +205,9 @@ void Widget::mousePressEvent(QMouseEvent *event) {
   QPoint global_pos = event->pos();
   QPoint local_pos = ui->label_image3D->mapFromParent(global_pos);
 
-  if (event->button() == Qt::LeftButton) {
-	int depth_at_cursor = m_ctimage.GetDepthBuffer()[local_pos.x() + local_pos.y() * m_qImage.width()];
-	if (ui->label_image3D->rect().contains(local_pos) && m_render3dClicked) {
+  if (ui->label_image3D->rect().contains(local_pos) && m_render3dClicked) {
+	if (event->button() == Qt::LeftButton) {
+	  int depth_at_cursor = m_ctimage.GetDepthBuffer()[local_pos.x() + local_pos.y() * m_qImage.width()];
 	  ui->label_currentSeed->setText(
 		"Current Seed [px]:   X: " + QString::number(local_pos.x()) + "   " + "Y: " + QString::number(local_pos.y())
 		  + "   "
