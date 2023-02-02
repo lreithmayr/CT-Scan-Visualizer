@@ -12,6 +12,7 @@
 #include <stack>
 #include <cmath>
 #include <cassert>
+#include <chrono>
 
 /**
  * @brief The CTDataset class is the central class to initialize and process CT scan images.
