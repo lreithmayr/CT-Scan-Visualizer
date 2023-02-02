@@ -63,6 +63,25 @@ int *CTDataset::GetRegionGrowingBuffer() const {
   return m_regionBuffer;
 }
 
+void CTDataset::GetAllRenderedPoints() {
+  m_allRenderedPoints.clear();
+
+  Eigen::Vector3i rendered_point(0, 0, 0);
+  for (int y = 0; y < m_imgHeight; ++y) {
+	for (int x = 0; x < m_imgWidth; ++x) {
+	  for (int d = 0; d < m_imgLayers; ++d) {
+		int pt = x + y * m_imgWidth + (m_imgHeight * m_imgWidth * d);
+		if (m_depthBuffer[pt] != 0) {
+		  rendered_point.x() = x;
+		  rendered_point.y() = y;
+		  rendered_point.z() = d;
+		  m_allRenderedPoints.push_back(rendered_point);
+		}
+	  }
+	}
+  }
+}
+
 /**
  * @details Windowing maps a desired slice of the raw grey values (in Hounsfield Units) to a an RGB scale from 0 to
  * \255. This makes it possible to highlight regions of interest such as bone, organ tissue or soft tissue which all
@@ -109,12 +128,19 @@ StatusOr<int> CTDataset::WindowInputValue(const int &input_value, const int &cen
  * @return StatusCode::OK if the result buffer is not empty, else StatusCode::BUFFER_EMPTY
  */
 Status CTDataset::CalculateDepthBuffer(int threshold) {
+  std::fill_n(m_depthBuffer, m_imgWidth * m_imgHeight, m_imgLayers - 1);
+  m_allRenderedPoints.clear();
+  Eigen::Vector3i rendered_point(0, 0, 0);
   for (int y = 0; y < m_imgHeight; ++y) {
 	for (int x = 0; x < m_imgWidth; ++x) {
 	  for (int d = 0; d < m_imgLayers; ++d) {
 		int curr_pt = (x + y * m_imgWidth) + (m_imgHeight * m_imgWidth * d);
 		if (m_imgData[curr_pt] >= threshold) {
 		  m_depthBuffer[x + y * m_imgWidth] = d;
+		  rendered_point.x() = x;
+		  rendered_point.y() = y;
+		  rendered_point.z() = d;
+		  m_allRenderedPoints.push_back(rendered_point);
 		  break;
 		}
 	  }
