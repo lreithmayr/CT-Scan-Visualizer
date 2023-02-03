@@ -146,9 +146,9 @@ void Widget::Update3DRender() {
 }
 
 void Widget::UpdateRotationMatrix(QPoint const &position_delta) {
-  m_rotationMat = Eigen::AngleAxisd(static_cast<double>(position_delta.y() * 0.5f) / static_cast<double>(180) * M_PI,
+  m_rotationMat = Eigen::AngleAxisd(static_cast<double>(position_delta.y()) / static_cast<double>(180) * M_PI,
 									Eigen::Vector3d::UnitX())
-	* Eigen::AngleAxisd(static_cast<double>(position_delta.x() * 0.5f) / static_cast<double>(180) * M_PI,
+	* Eigen::AngleAxisd(static_cast<double>(position_delta.x()) / static_cast<double>(180) * M_PI,
 						-Eigen::Vector3d::UnitY())
 	* m_rotationMat;
 }
@@ -268,7 +268,7 @@ void Widget::mousePressEvent(QMouseEvent *event) {
 		m_seedPicked = true;
 	  }
 	  if (event->button() == Qt::RightButton) {
-		m_currentMousePos = local_pos_3Dimg;
+		m_currentMousePos = global_pos;
 		qDebug() << "RMB clicked at: " << m_currentMousePos << "\n";
 	  }
 	}
@@ -312,10 +312,10 @@ void Widget::mouseMoveEvent(QMouseEvent *event) {
 		ui->label_depthPos_mm->setText("Depth [mm]: " + QString::number(depth_mm));
 
 		if (event->buttons() == Qt::RightButton) {
-		  QPoint position_delta = m_currentMousePos - local_pos_3Dimg;
+		  QPoint position_delta = m_currentMousePos - global_pos;
 		  UpdateRotationMatrix(position_delta);
 		  RenderRegionGrowing();
-		  m_currentMousePos = local_pos_3Dimg;
+		  m_currentMousePos = global_pos;
 		}
 	  }
 	}
@@ -407,10 +407,12 @@ void Widget::WriteAreasToFile() {
 
 	// All OK -> Save data
 	QTextStream out(&file);
-	out << "Zielbereich:" << "\n" << "	" << "X [px]: " << m_targetArea.x() << "\n" << "	" << "Y [px]: " << m_targetArea.y() << "\n"
+	out << "Zielbereich:" << "\n" << "	" << "X [px]: " << m_targetArea.x() << "\n" << "	" << "Y [px]: "
+		<< m_targetArea.y() << "\n"
 		<< "	" << "Z [px]: " << m_targetArea.z() << "\n" << "	" << "Radius [px]: " << m_targetArea.w() << "\n\n";
 
-	out << "Schonbereich:" << "\n" << "	" << "X [px]: " << m_safeArea.x() << "\n" << "	" << "Y [px]: " << m_safeArea.y() << "\n"
+	out << "Schonbereich:" << "\n" << "	" << "X [px]: " << m_safeArea.x() << "\n" << "	" << "Y [px]: "
+		<< m_safeArea.y() << "\n"
 		<< "	" << "Z [px]: " << m_safeArea.z() << "\n" << "	" << "Radius [px]: " << m_safeArea.w();
 
 	file.close();

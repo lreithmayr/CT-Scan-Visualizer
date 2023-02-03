@@ -43,8 +43,9 @@ Status CTDataset::load(QString &img_path) {
 int16_t *CTDataset::Data() const {
   return m_imgData;
 }
+
 /**
- * @return Pointer of type int16_t to the non-3D rendered depth buffer
+ * @return Pointer of type int to the non-3D rendered depth buffer
  * @attention Null-checks and bounds-checks are caller's responsiblity
  */
 int *CTDataset::GetDepthBuffer() const {
@@ -52,18 +53,25 @@ int *CTDataset::GetDepthBuffer() const {
 }
 
 /**
- * @return Pointer of type int16_t to the 3d-rendered depth image buffer
+ * @return Pointer of type int to the 3d-rendered depth image buffer
  * @attention Null-checks and bounds-checks are caller's responsiblity
  */
 int *CTDataset::GetRenderedDepthBuffer() const {
   return m_renderedDepthBuffer;
 }
 
+/**
+ * @return Pointer of type int16 to the region growing buffer
+ * @attention Null-checks and bounds-checks are caller's responsiblity
+ */
 int *CTDataset::GetRegionGrowingBuffer() const {
   return m_regionBuffer;
 }
 
-void CTDataset::GetAllRenderedPoints() {
+/**
+ * @details Traverses the image and checks, if the depth buffer at the point location has been written to. If yes, aggregates the point into a member vector
+ */
+void CTDataset::CalculateAllRenderedPoints() {
   m_allRenderedPoints.clear();
 
   Eigen::Vector3i rendered_point(0, 0, 0);
@@ -152,9 +160,15 @@ Status CTDataset::CalculateDepthBuffer(int threshold) {
   return Status(StatusCode::OK);
 }
 
+/**
+ * @details Traverses the list of all surface points determined by the region growing algorithm.
+ * Checks if the x and y values fall inside the array boundaries and subsequently writes the z-value of the point
+ * (it's depth) into the depth buffer
+ * @param rotation_mat Rotation matrix determined from the mouse position delta.
+ * @return StatusCode::OK if the result buffer is not empty, else StatusCode::BUFFER_EMPTY
+ */
 Status CTDataset::CalculateDepthBufferFromRegionGrowing(Eigen::Matrix3d &rotation_mat) {
   std::fill_n(m_depthBuffer, m_imgWidth * m_imgHeight, m_imgLayers - 1);
-  std::cout << rotation_mat.format(CleanFmt) << "\n=====\n";
 
   if (m_surfacePoints.empty()) {
 	qDebug() << "No surface points!" << "\n";
@@ -164,23 +178,26 @@ Status CTDataset::CalculateDepthBufferFromRegionGrowing(Eigen::Matrix3d &rotatio
   Eigen::Vector3d pt_rot(0, 0, 0);
   for (auto &point : m_surfacePoints) {
 	pt_rot = (rotation_mat * (point.cast<double>() - m_regionVolumeCenter)) + m_regionVolumeCenter;
-	if ((static_cast<int>(pt_rot.x()) < m_imgWidth && static_cast<int>(pt_rot.x()) >= 0) &&
-	  (static_cast<int>(pt_rot.y()) < m_imgHeight && static_cast<int>(pt_rot.y()) >= 0)) {
-	  m_depthBuffer[static_cast<int>(pt_rot.x()) + static_cast<int>(pt_rot.y()) * m_imgWidth]
-		= m_depthBuffer[(static_cast<int>(pt_rot.x()) - 1) + static_cast<int>(pt_rot.y()) * m_imgWidth]
-		= m_depthBuffer[(static_cast<int>(pt_rot.x()) + 1) + static_cast<int>(pt_rot.y()) * m_imgWidth]
-		= m_depthBuffer[static_cast<int>(pt_rot.x()) + (static_cast<int>(pt_rot.y()) - 1) * m_imgWidth]
-		= m_depthBuffer[static_cast<int>(pt_rot.x()) + (static_cast<int>(pt_rot.y()) + 1) * m_imgWidth]
-		= static_cast<int>(pt_rot.z());
+	auto pt_rot_int = pt_rot.cast<int>();
+	if ((pt_rot_int.x() >= 0 && pt_rot_int.x() < m_imgWidth) && (pt_rot_int.y() >= 0 && pt_rot_int.y() < m_imgHeight)) {
+	  m_depthBuffer[pt_rot_int.x() + (pt_rot_int.y() * m_imgWidth)]
+		= m_depthBuffer[(pt_rot_int.x() - 1) + pt_rot_int.y() * m_imgWidth]
+		= m_depthBuffer[(pt_rot_int.x() + 1) + pt_rot_int.y() * m_imgWidth]
+		= m_depthBuffer[pt_rot_int.x() + (pt_rot_int.y() - 1) * m_imgWidth]
+		= m_depthBuffer[pt_rot_int.x() + (pt_rot_int.y() + 1) * m_imgWidth]
+		= pt_rot_int.z();
 	}
   }
 
   if (m_depthBuffer == nullptr) {
-	qDebug() << "Depth buffer empty!" << "\n";
-	return Status(StatusCode::BUFFER_EMPTY);
+	qDebug()
+	  << "Depth buffer empty!" << "\n";
+	return
+	  Status(StatusCode::BUFFER_EMPTY);
   }
 
-  return Status(StatusCode::OK);
+  return
+	Status(StatusCode::OK);
 }
 
 /**
@@ -196,13 +213,12 @@ Status CTDataset::RenderDepthBuffer() {
 	return Status(StatusCode::BUFFER_EMPTY);
   }
 
-  int s_x = 8;
-  int s_y = 8;
+  int s_x = 4;
+  int s_y = 4;
   int T_x = 0;
   int T_y = 0;
   double sxTy_sq = 0;
   double syTx_sq = 0;
-  double nom = 255 * s_x * s_y;
   double denom = 0;
   double inv = 0;
   int I_ref = 0;
@@ -211,6 +227,9 @@ Status CTDataset::RenderDepthBuffer() {
   double s_y_sq = s_y * s_y;
   double s_pow_four = s_x_sq * s_y_sq;
 
+  auto n = Eigen::Vector3d::UnitZ();
+  auto s = Eigen::Vector3d(0, 0, s_x * s_y);
+
   for (int y = 0; y < m_imgHeight; ++y) {
 	for (int x = 0; x < m_imgWidth; ++x) {
 	  auto current_point = x + y * m_imgWidth;
@@ -218,6 +237,9 @@ Status CTDataset::RenderDepthBuffer() {
 	  T_y = m_depthBuffer[x + (y + 1) * m_imgWidth] - m_depthBuffer[x + (y - 1) * m_imgWidth];
 	  syTx_sq = s_y_sq * T_x * T_x;
 	  sxTy_sq = s_x_sq * T_y * T_y;
+	  s.x() = -s_y * T_x;
+	  s.y() = -s_x * T_y;
+	  auto nom = 255 * n.dot(s);
 	  denom = std::sqrt(syTx_sq + sxTy_sq + s_pow_four);
 	  inv = 1 / denom;
 	  I_ref = nom * inv;
@@ -237,6 +259,11 @@ int CTDataset::GetGreyValue(const Eigen::Vector3i &pt) const {
   return m_imgData[(pt.x() + pt.y() * m_imgWidth) + (m_imgHeight * m_imgWidth * pt.z())];
 }
 
+/**
+ * @details Iterate through the region determined by region growing and find points that do not have six neighbors.
+ * Construct an Eigen::Vector3i from the coordinates of these surface points.
+ * @return StatusCode::OK if the region growin buffer is not empty
+ */
 Status CTDataset::FindSurfacePoints() {
   if (m_regionBuffer == nullptr) {
 	return Status(StatusCode::BUFFER_EMPTY);
@@ -268,26 +295,14 @@ Status CTDataset::FindSurfacePoints() {
   return Status(StatusCode::OK);
 }
 
+/**
+ * @details Iterate through all points in the RG buffer and sum up their respective coordinates and take the average.
+ * @return StatusCode::OK if the region growin buffer is not empty
+ */
 Status CTDataset::FindPointCloudCenter() {
-  if (m_regionBuffer == nullptr) {
+  AggregatePointsInRegion();
+  if (m_allPointsInRegion.empty()) {
 	return Status(StatusCode::BUFFER_EMPTY);
-  }
-
-  m_allPointsInRegion.clear();
-
-  Eigen::Vector3i region_point(0, 0, 0);
-  for (int y = 0; y < m_imgHeight; ++y) {
-	for (int x = 0; x < m_imgWidth; ++x) {
-	  for (int d = 0; d < m_imgLayers; ++d) {
-		int pt = x + y * m_imgWidth + (m_imgHeight * m_imgWidth * d);
-		if (m_regionBuffer[pt] == 1) {
-		  region_point.x() = x;
-		  region_point.y() = y;
-		  region_point.z() = d;
-		  m_allPointsInRegion.push_back(region_point);
-		}
-	  }
-	}
   }
 
   int64_t x_tot = 0;
@@ -308,6 +323,16 @@ Status CTDataset::FindPointCloudCenter() {
   return Status(StatusCode::OK);
 }
 
+/**
+ * @details Implementation of an interative region growing algorithm. Start with an initial seed, neighboring pixel
+ * are determined and checked in turn for if their HU value is greater than the threshold. If yes, they are added
+ * to the region. If not, they are simply marked as visited and not added to the region. Once all neighbors have been
+ * checked, the next seed is determined as the last checked neighbor and the algorithm starts again. It terminates once
+ * no new pixel are available. Once completed, the surface points of the region as well as the barycenter of the region
+ * are determined.
+ * @param seed User-picked initial seed point of the algorithm
+ * @param threshold HU value above which points will be added to the region
+ */
 void CTDataset::RegionGrowing3D(Eigen::Vector3i &seed, int threshold) {
   std::fill_n(m_regionBuffer, m_imgHeight * m_imgWidth * m_imgLayers, 0);
   qDebug() << "Starting region growing algorithm!" << "\n";
@@ -349,6 +374,24 @@ void CTDataset::RegionGrowing3D(Eigen::Vector3i &seed, int threshold) {
 	qDebug() << m_allPointsInRegion.size() << " total points in the region!" << "\n";
 	qDebug() << "Centroid: " << m_regionVolumeCenter.x() << m_regionVolumeCenter.y() << m_regionVolumeCenter.z()
 			 << "\n";
+  }
+}
+
+void CTDataset::AggregatePointsInRegion() {
+  m_allPointsInRegion.clear();
+  Eigen::Vector3i region_point(0, 0, 0);
+  for (int y = 0; y < m_imgHeight; ++y) {
+	for (int x = 0; x < m_imgWidth; ++x) {
+	  for (int d = 0; d < m_imgLayers; ++d) {
+		int pt = x + y * m_imgWidth + (m_imgHeight * m_imgWidth * d);
+		if (m_regionBuffer[pt] == 1) {
+		  region_point.x() = x;
+		  region_point.y() = y;
+		  region_point.z() = d;
+		  m_allPointsInRegion.push_back(region_point);
+		}
+	  }
+	}
   }
 }
 

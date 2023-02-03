@@ -8,6 +8,7 @@
 
 #include <QFile>
 #include <QDebug>
+#include <QPoint>
 
 #include <stack>
 #include <cmath>
@@ -38,9 +39,11 @@ class CTDataset {
   /// Get a pointer to the 3D rendered image buffer
   [[nodiscard]] int *GetRenderedDepthBuffer() const;
 
+  /// Get a pointer to the region growing buffer
   [[nodiscard]] int *GetRegionGrowingBuffer() const;
 
-  void GetAllRenderedPoints();
+  /// Calculates all rendered points and saves them in a member vector
+  void CalculateAllRenderedPoints();
 
   /// Normalize pixel values to a pre-defined grey-value range
   static StatusOr<int> WindowInputValue(const int &input_value, const int &center, const int &window_size);
@@ -48,6 +51,7 @@ class CTDataset {
   /// Calculate the depth value for each pixel in the CT image
   Status CalculateDepthBuffer(int threshold);
 
+  /// Calculate the depth value for each pixel in the region determined by region growing
   Status CalculateDepthBufferFromRegionGrowing(Eigen::Matrix3d &rotation_mat);
 
   /// Render a shaded 3D image from the depth buffer
@@ -59,10 +63,16 @@ class CTDataset {
   /// 3D region growing algorithm
   void RegionGrowing3D(Eigen::Vector3i &seed, int threshold);
 
+  /// Saves all points from the region growing algorithm in a member vector
+  void AggregatePointsInRegion();
+
+  /// Traverses all region growing points and determines the surface points
   Status FindSurfacePoints();
 
+  /// Traverses all points in the region and computes the average of their coordinates
   Status FindPointCloudCenter();
 
+  /// Computes rigid transformation matrix for transformation from source to target
   static Eigen::Isometry3d EstimateRigidTransformation3D(const std::vector<Eigen::Vector3d> &source_points,
 														 const std::vector<Eigen::Vector3d> &target_points);
 

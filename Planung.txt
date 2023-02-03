@@ -1,11 +1,11 @@
 Zielbereich:
-	X [px]: 145
-	Y [px]: 180
+	X [px]: 146
+	Y [px]: 174
 	Z [px]: 0
-	Radius [px]: 128
+	Radius [px]: 19
 
 Schonbereich:
-	X [px]: 320
-	Y [px]: 167
+	X [px]: 263
+	Y [px]: 200
 	Z [px]: 0
-	Radius [px]: 47
+	Radius [px]: 84
