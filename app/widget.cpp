@@ -1,6 +1,6 @@
 #include "widget.h"
 
-// #define THRHLD_UPDATE_BOTH
+#define THRHLD_UPDATE_BOTH
 // #define ONLY_3DRENDER
 
 Widget::Widget(QWidget *parent)
@@ -10,7 +10,7 @@ Widget::Widget(QWidget *parent)
 	m_qImage_2d(QImage(512, 512, QImage::Format_RGB32)),
 	m_qImage(QImage(512, 512, QImage::Format_RGB32)) {
   // Initialize rotation matrix
-  m_rotationMat.setIdentity();
+  -m_rotationMat.setIdentity();
 
   // Housekeeping
   ui->setupUi(this);
@@ -33,6 +33,7 @@ Widget::Widget(QWidget *parent)
   connect(ui->pushButton_targetArea, SIGNAL(clicked()), this, SLOT(SelectTargetArea()));
   connect(ui->pushButton_safeArea, SIGNAL(clicked()), this, SLOT(SelectSafeArea()));
   connect(ui->pushButton_writeAreas, SIGNAL(clicked()), this, SLOT(WriteAreasToFile()));
+  connect(ui->pushButton_startCalib, SIGNAL(clicked()), this, SLOT(StartTransformationMatrixCalibration()));
 
   // Horizontal sliders
   connect(ui->horizontalSlider_threshold, SIGNAL(valueChanged(int)), this,
@@ -199,6 +200,51 @@ void Widget::DrawCircleAtCursor(const QPoint &cursor_local_pos, Qt::GlobalColor 
   }
 }
 
+void Widget::PickCalibrationPoints() {
+  Eigen::Vector3i rotated_point(m_currentMousePos3DImage.x(), m_currentMousePos3DImage.y(), m_currentDepthAtCursor);
+  auto calib_point = m_rotationMat.transpose() * rotated_point.cast<double>();
+  m_calibPoints.emplace_back(calib_point);
+
+  switch (m_calibPoints.size()) {
+	case 1:
+	  ui->label_calibPoint1->setText(
+		"Point 1:   X: " + QString::number(calib_point.x()) + "   " + "Y: "
+		  + QString::number(calib_point.y())
+		  + "   "
+		  + "Z: " + QString::number(calib_point.z()));
+	  break;
+	case 2:
+	  ui->label_calibPoint2->setText(
+		"Point 2:   X: " + QString::number(calib_point.x()) + "   " + "Y: "
+		  + QString::number(calib_point.y())
+		  + "   "
+		  + "Z: " + QString::number(calib_point.z()));
+
+
+	  break;
+	case 3:
+	  ui->label_calibPoint3->setText(
+		"Point 3:   X: " + QString::number(calib_point.x()) + "   " + "Y: "
+		  + QString::number(calib_point.y())
+		  + "   "
+		  + "Z: " + QString::number(calib_point.z()));
+	  QMessageBox::information(this,
+							   "Calibration Procedure",
+							   "Three calibration points have been picked");
+	  break;
+  }
+}
+
+void Widget::RunTransformationProcedure() {
+  std::vector<Eigen::Vector3d> target_points = {Eigen::Vector3d(843.101, -446.136, 1351.37),
+												Eigen::Vector3d(818.798, -509.529, 1281.21),
+												Eigen::Vector3d(705.728, -587.419, 1248.07),
+												Eigen::Vector3d(727.323, -641.464, 1299.31),
+												Eigen::Vector3d(588.693, -568.988, 1328.29),
+												Eigen::Vector3d(563.985, -515.414, 1399.54),
+												};
+}
+
 // =============== Slots ===============
 
 void Widget::LoadImage3D() {
@@ -208,6 +254,7 @@ void Widget::LoadImage3D() {
   if (!m_ctimage.load(img_path).Ok()) {
 	QMessageBox::critical(this, "Error",
 						  "The specified file could not be opened!");
+	m_render3dClicked = false;
 	return;
   }
 #ifdef ONLY_3DRENDER
@@ -240,6 +287,8 @@ void Widget::UpdateThresholdValue(const int val) {
 	Update3DRender();
 #endif
   }
+  m_seedPicked = false;
+  m_regionGrowingIsRendered = false;
 }
 
 void Widget::Render3D() {
@@ -264,8 +313,15 @@ void Widget::mousePressEvent(QMouseEvent *event) {
 			+ QString::number(local_pos_3Dimg.y())
 			+ "   "
 			+ "Depth: " + QString::number(depth_at_cursor));
+
+		// Pick seed for region growing
 		m_currentSeed = Eigen::Vector3i(local_pos_3Dimg.x(), local_pos_3Dimg.y(), depth_at_cursor);
 		m_seedPicked = true;
+
+		// Pick points for calibration
+		if (m_calibrationStarted) {
+		  PickCalibrationPoints();
+		}
 	  }
 	  if (event->button() == Qt::RightButton) {
 		m_currentMousePos = global_pos;
@@ -287,21 +343,23 @@ void Widget::mousePressEvent(QMouseEvent *event) {
 }
 
 void Widget::mouseMoveEvent(QMouseEvent *event) {
+  QPoint global_pos = event->pos();
+  m_currentMouseGlobalPos = global_pos;
+  QPoint local_pos_3Dimg = ui->label_image3D->mapFromParent(global_pos);
+  QPoint local_pos_2Dslice = ui->label_imgArea->mapFromParent(global_pos);
 
   if (m_render3dClicked) {
-	QPoint global_pos = event->pos();
-	QPoint local_pos_3Dimg = ui->label_image3D->mapFromParent(global_pos);
-	QPoint local_pos_2Dslice = ui->label_imgArea->mapFromParent(global_pos);
-
 	int cursor_x_px_3Dimg = local_pos_3Dimg.x();
 	double cursor_x_mm_3Dimg = cursor_x_px_3Dimg * 0.523; // Pixel x position * Voxel length in x
 	int cursor_y_px_3Dimg = local_pos_3Dimg.y();
 	double cursor_y_mm_3Dimg = cursor_y_px_3Dimg * 0.523; // Pixel y position * Voxel length in y
 
 	int depth_at_cursor = m_ctimage.GetDepthBuffer()[local_pos_3Dimg.x() + local_pos_3Dimg.y() * m_qImage.width()];
+	m_currentDepthAtCursor = depth_at_cursor;
 	auto depth_mm = depth_at_cursor * 0.7; // Depth value * Voxel height
 
 	if (ui->label_image3D->rect().contains(local_pos_3Dimg)) {
+	  m_currentMousePos3DImage = local_pos_3Dimg;
 	  ui->label_xPos->setText("X [px]: " + QString::number(cursor_x_px_3Dimg));
 	  ui->label_xPos_mm->setText("X [mm]: " + QString::number(cursor_x_mm_3Dimg));
 	  ui->label_yPos->setText("Y [px]: " + QString::number(cursor_y_px_3Dimg));
@@ -372,11 +430,13 @@ void Widget::StartRegionGrowingFromSeed() {
   if (!m_seedPicked) {
 	QMessageBox::critical(this,
 						  "No seed picked",
-						  "No initial seed has been picked. Please pick a seed by left-clicking on the rendered 3D image.");
+						  "No initial seed has been picked or the threshold value has been changed. Please pick a seed by left-clicking on the rendered 3D image.");
 	return;
   }
+
   m_ctimage.RegionGrowing3D(m_currentSeed, ui->horizontalSlider_threshold->value());
   RenderRegionGrowing();
+  m_regionGrowingIsRendered = true;
 }
 
 void Widget::SelectTargetArea() {
@@ -392,6 +452,19 @@ void Widget::SelectSafeArea() {
 }
 
 void Widget::WriteAreasToFile() {
+  if (!m_calibrationOccured) {
+	QMessageBox::critical(this,
+						  "External Coordinates not Calibrated",
+						  "The coordinate transformation to the external device has not been calibrated.\nPlease run the calibration procedure first.");
+	return;
+  }
+
+  if (!m_safeAreaHasBeenDrawn || !m_targetAreaHasBeenDrawn) {
+	QMessageBox::critical(this,
+						  "No coordinates selected",
+						  "There are no coordinates to write to file. Please select target and safe zones in the 2D image.");
+	return;
+  }
   QString file_name = QFileDialog::getSaveFileName(this,
 												   tr("Speichern der Planung"),
 												   tr("../Planung.txt"),
@@ -417,6 +490,20 @@ void Widget::WriteAreasToFile() {
 
 	file.close();
   }
+}
+
+void Widget::StartTransformationMatrixCalibration() {
+  if (!m_regionGrowingIsRendered) {
+	QMessageBox::critical(this,
+						  "No Region Growing Render",
+						  "There is no rendered 3D model from which to pick calibration points.\nPlease run the region growing algorithm first.");
+	return;
+  }
+  m_calibrationStarted = true;
+  m_calibPoints.clear();
+  QMessageBox::information(this,
+						   "Calibration Procedure",
+						   "Welcome to the calibration procedure.\nPlease pick 3 calibration points from the 3D model!");
 }
 
 
