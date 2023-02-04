@@ -369,9 +369,7 @@ safe area</string>
     </rect>
    </property>
    <property name="text">
-    <string>Start 
- Calibration 
- Procedure</string>
+    <string>Calibration</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_calibPoint1">
