@@ -362,53 +362,15 @@ safe area</string>
   <widget class="QPushButton" name="pushButton_startCalib">
    <property name="geometry">
     <rect>
-     <x>740</x>
-     <y>10</y>
-     <width>111</width>
-     <height>91</height>
+     <x>760</x>
+     <y>20</y>
+     <width>291</width>
+     <height>71</height>
     </rect>
    </property>
    <property name="text">
-    <string>Calibration</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_calibPoint1">
-   <property name="geometry">
-    <rect>
-     <x>870</x>
-     <y>10</y>
-     <width>241</width>
-     <height>19</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Point 1:</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_calibPoint2">
-   <property name="geometry">
-    <rect>
-     <x>870</x>
-     <y>40</y>
-     <width>251</width>
-     <height>19</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Point 2:</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_calibPoint3">
-   <property name="geometry">
-    <rect>
-     <x>870</x>
-     <y>70</y>
-     <width>251</width>
-     <height>19</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Point 3:</string>
+    <string>Calibrate
+Point-to-Point Registration</string>
    </property>
   </widget>
  </widget>
