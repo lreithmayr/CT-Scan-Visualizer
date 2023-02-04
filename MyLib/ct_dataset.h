@@ -107,8 +107,5 @@ class CTDataset {
   Eigen::Vector3d m_regionVolumeCenter;
 };
 
-// Global Eigen::IOFormat definition for debugging purposes
-// FIXME: Remove this when done debugging!
-Eigen::IOFormat const CleanFmt(4, 0, ", ", "\n", "[", "]");
 
 #endif  // CT_DATASET_H

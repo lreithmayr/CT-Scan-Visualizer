@@ -15,6 +15,7 @@ class MyLibUnitTest : public QObject {
  private Q_SLOTS:
   static void WindowingTest();
   static void FindNeighbours3DTest();
+  static void EstimateRigidTransformationTest();
 };
 
 /**
@@ -84,10 +85,32 @@ void MyLibUnitTest::WindowingTest() {
 }
 
 void MyLibUnitTest::FindNeighbours3DTest() {
-  Eigen::Vector3i pt(0, 1, 1);
+  Eigen::Vector3i pt(1, 1, 1);
   std::vector<Eigen::Vector3i> neighbors;
   MyLib::FindNeighbors3D(pt, neighbors);
-  std::cout << neighbors.size() << "\n";
+  QVERIFY2(neighbors.size() == 6, "Too few neighbors found!");
+}
+
+void MyLibUnitTest::EstimateRigidTransformationTest() {
+  std::vector<Eigen::Vector3d> source = {Eigen::Vector3d(0, 0, 0),
+												Eigen::Vector3d(10, 0, 0),
+												Eigen::Vector3d(0, 20, 0)};
+  std::vector<Eigen::Vector3d> target = {Eigen::Vector3d(0, 0, 20.1),
+										 Eigen::Vector3d(10.2, 0, 20),
+										 Eigen::Vector3d(0, 19.9, 20)};
+  auto transformation_mat = MyLib::EstimateRigidTransformation3D(source, target);
+
+  auto transformed_0 = transformation_mat * source.at(0);
+  auto transformed_1 = transformation_mat * source.at(1);
+  auto transformed_2 = transformation_mat * source.at(2);
+
+  std::cout << transformed_0.format(CleanFmt) << "\n" << "==" <<"\n";
+  std::cout << transformed_1.format(CleanFmt) << "\n" << "==" << "\n";
+  std::cout << transformed_2.format(CleanFmt) << "\n" << "==" << "\n";
+
+  QVERIFY2(transformed_0 == target.at(0), "Source not translated correctly");
+  QVERIFY2(transformed_1 == target.at(1), "Source not translated correctly");
+  QVERIFY2(transformed_2 == target.at(2), "Source not translated correctly");
 }
 
 QTEST_APPLESS_MAIN(MyLibUnitTest)

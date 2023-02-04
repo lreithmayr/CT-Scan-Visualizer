@@ -10,6 +10,10 @@
 
 #include <iostream>
 
+// Global Eigen::IOFormat definition for debugging purposes
+// FIXME: Remove this when done debugging!
+Eigen::IOFormat const CleanFmt(4, 0, ", ", "\n", "[", "]");
+
 class MYLIB_EXPORT MyLib {
  public:
   MyLib() = default;

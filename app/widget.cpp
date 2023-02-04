@@ -243,10 +243,10 @@ void Widget::PickCalibrationPoints() {
 	  break;
 	case 6:
 	  QMessageBox::information(this, "Point 6",
-		"Point 6:   X: " + QString::number(calib_point.x()) + "   " + "Y: "
-		  + QString::number(calib_point.y())
-		  + "   "
-		  + "Z: " + QString::number(calib_point.z()));
+							   "Point 6:   X: " + QString::number(calib_point.x()) + "   " + "Y: "
+								 + QString::number(calib_point.y())
+								 + "   "
+								 + "Z: " + QString::number(calib_point.z()));
 	  QMessageBox::information(this,
 							   "Calibration Procedure",
 							   "Six calibration points have been picked");
@@ -261,8 +261,7 @@ void Widget::CalculateTransformationMatrix() {
 												Eigen::Vector3d(705.728, -587.419, 1248.07),
 												Eigen::Vector3d(727.323, -641.464, 1299.31),
 												Eigen::Vector3d(588.693, -568.988, 1328.29),
-												Eigen::Vector3d(563.985, -515.414, 1399.54),
-  };
+												Eigen::Vector3d(563.985, -515.414, 1399.54)};
 
   m_transformationMatrix = MyLib::EstimateRigidTransformation3D(m_calibPoints, target_points);
   QMessageBox::information(this,
@@ -524,13 +523,17 @@ void Widget::WriteAreasToFile() {
 		<< m_safeArea.y() << "\n"
 		<< "	" << "Z [px]: " << m_safeArea.z() << "\n" << "	" << "Radius [px]: " << m_safeArea.w() << "\n\n";
 
-	out << "Zielbereich transformiert:" << "\n" << "	" << "X [px]: " << m_transformedTargetArea.x() << "\n" << "	" << "Y [px]: "
+	out << "Zielbereich transformiert:" << "\n" << "	" << "X [px]: " << m_transformedTargetArea.x() << "\n" << "	"
+		<< "Y [px]: "
 		<< m_transformedTargetArea.y() << "\n"
-		<< "	" << "Z [px]: " << m_transformedTargetArea.z() << "\n" << "	" << "Radius [px]: " << m_targetArea.w() << "\n\n";
+		<< "	" << "Z [px]: " << m_transformedTargetArea.z() << "\n" << "	" << "Radius [px]: " << m_targetArea.w()
+		<< "\n\n";
 
-	out << "Schonbereich transformiert:" << "\n" << "	" << "X [px]: " << m_transformedSafeArea.x() << "\n" << "	" << "Y [px]: "
+	out << "Schonbereich transformiert:" << "\n" << "	" << "X [px]: " << m_transformedSafeArea.x() << "\n" << "	"
+		<< "Y [px]: "
 		<< m_transformedSafeArea.y() << "\n"
-		<< "	" << "Z [px]: " << m_transformedSafeArea.z() << "\n" << "	" << "Radius [px]: " << m_safeArea.w() << "\n\n";
+		<< "	" << "Z [px]: " << m_transformedSafeArea.z() << "\n" << "	" << "Radius [px]: " << m_safeArea.w()
+		<< "\n\n";
 
 	file.close();
   }
