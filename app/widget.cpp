@@ -207,42 +207,75 @@ void Widget::PickCalibrationPoints() {
 
   switch (m_calibPoints.size()) {
 	case 1:
-	  ui->label_calibPoint1->setText(
-		"Point 1:   X: " + QString::number(calib_point.x()) + "   " + "Y: "
-		  + QString::number(calib_point.y())
-		  + "   "
-		  + "Z: " + QString::number(calib_point.z()));
+	  QMessageBox::information(this, "Point 1",
+							   "Point 1:   X: " + QString::number(calib_point.x()) + "   " + "Y: "
+								 + QString::number(calib_point.y())
+								 + "   "
+								 + "Z: " + QString::number(calib_point.z()));
 	  break;
 	case 2:
-	  ui->label_calibPoint2->setText(
-		"Point 2:   X: " + QString::number(calib_point.x()) + "   " + "Y: "
-		  + QString::number(calib_point.y())
-		  + "   "
-		  + "Z: " + QString::number(calib_point.z()));
-
-
+	  QMessageBox::information(this, "Point 2",
+							   "Point 2:   X: " + QString::number(calib_point.x()) + "   " + "Y: "
+								 + QString::number(calib_point.y())
+								 + "   "
+								 + "Z: " + QString::number(calib_point.z()));
 	  break;
 	case 3:
-	  ui->label_calibPoint3->setText(
-		"Point 3:   X: " + QString::number(calib_point.x()) + "   " + "Y: "
+	  QMessageBox::information(this, "Point 3",
+							   "Point 3:   X: " + QString::number(calib_point.x()) + "   " + "Y: "
+								 + QString::number(calib_point.y())
+								 + "   "
+								 + "Z: " + QString::number(calib_point.z()));
+	  break;
+	case 4:
+	  QMessageBox::information(this, "Point 4",
+							   "Point 4:   X: " + QString::number(calib_point.x()) + "   " + "Y: "
+								 + QString::number(calib_point.y())
+								 + "   "
+								 + "Z: " + QString::number(calib_point.z()));
+	  break;
+	case 5:
+	  QMessageBox::information(this, "Point 5",
+							   "Point 5:   X: " + QString::number(calib_point.x()) + "   " + "Y: "
+								 + QString::number(calib_point.y())
+								 + "   "
+								 + "Z: " + QString::number(calib_point.z()));
+	  break;
+	case 6:
+	  QMessageBox::information(this, "Point 6",
+		"Point 6:   X: " + QString::number(calib_point.x()) + "   " + "Y: "
 		  + QString::number(calib_point.y())
 		  + "   "
 		  + "Z: " + QString::number(calib_point.z()));
 	  QMessageBox::information(this,
 							   "Calibration Procedure",
-							   "Three calibration points have been picked");
+							   "Six calibration points have been picked");
+	  CalculateTransformationMatrix();
 	  break;
   }
 }
 
-void Widget::RunTransformationProcedure() {
+void Widget::CalculateTransformationMatrix() {
   std::vector<Eigen::Vector3d> target_points = {Eigen::Vector3d(843.101, -446.136, 1351.37),
 												Eigen::Vector3d(818.798, -509.529, 1281.21),
 												Eigen::Vector3d(705.728, -587.419, 1248.07),
 												Eigen::Vector3d(727.323, -641.464, 1299.31),
 												Eigen::Vector3d(588.693, -568.988, 1328.29),
 												Eigen::Vector3d(563.985, -515.414, 1399.54),
-												};
+  };
+
+  m_transformationMatrix = MyLib::EstimateRigidTransformation3D(m_calibPoints, target_points);
+  QMessageBox::information(this,
+						   "Calibration Procedure",
+						   "Transformation matrix has been computed!\nCalibration has finished!");
+  m_calibrationOccured = true;
+}
+
+void Widget::TransformSelectedAreas() {
+  Eigen::Vector3i target_area_XYZ(m_targetArea.x(), m_targetArea.y(), m_targetArea.z());
+  Eigen::Vector3i safe_area_XYZ(m_safeArea.x(), m_safeArea.y(), m_safeArea.z());
+  m_transformedTargetArea = m_transformationMatrix * target_area_XYZ.cast<double>();
+  m_transformedSafeArea = m_transformationMatrix * safe_area_XYZ.cast<double>();
 }
 
 // =============== Slots ===============
@@ -318,7 +351,7 @@ void Widget::mousePressEvent(QMouseEvent *event) {
 		m_currentSeed = Eigen::Vector3i(local_pos_3Dimg.x(), local_pos_3Dimg.y(), depth_at_cursor);
 		m_seedPicked = true;
 
-		// Pick points for calibration
+		// Pick points for calibration and start calibration procedure
 		if (m_calibrationStarted) {
 		  PickCalibrationPoints();
 		}
@@ -465,6 +498,9 @@ void Widget::WriteAreasToFile() {
 						  "There are no coordinates to write to file. Please select target and safe zones in the 2D image.");
 	return;
   }
+
+  TransformSelectedAreas();
+
   QString file_name = QFileDialog::getSaveFileName(this,
 												   tr("Speichern der Planung"),
 												   tr("../Planung.txt"),
@@ -486,7 +522,15 @@ void Widget::WriteAreasToFile() {
 
 	out << "Schonbereich:" << "\n" << "	" << "X [px]: " << m_safeArea.x() << "\n" << "	" << "Y [px]: "
 		<< m_safeArea.y() << "\n"
-		<< "	" << "Z [px]: " << m_safeArea.z() << "\n" << "	" << "Radius [px]: " << m_safeArea.w();
+		<< "	" << "Z [px]: " << m_safeArea.z() << "\n" << "	" << "Radius [px]: " << m_safeArea.w() << "\n\n";
+
+	out << "Zielbereich transformiert:" << "\n" << "	" << "X [px]: " << m_transformedTargetArea.x() << "\n" << "	" << "Y [px]: "
+		<< m_transformedTargetArea.y() << "\n"
+		<< "	" << "Z [px]: " << m_transformedTargetArea.z() << "\n" << "	" << "Radius [px]: " << m_targetArea.w() << "\n\n";
+
+	out << "Schonbereich transformiert:" << "\n" << "	" << "X [px]: " << m_transformedSafeArea.x() << "\n" << "	" << "Y [px]: "
+		<< m_transformedSafeArea.y() << "\n"
+		<< "	" << "Z [px]: " << m_transformedSafeArea.z() << "\n" << "	" << "Radius [px]: " << m_safeArea.w() << "\n\n";
 
 	file.close();
   }
@@ -503,7 +547,7 @@ void Widget::StartTransformationMatrixCalibration() {
   m_calibPoints.clear();
   QMessageBox::information(this,
 						   "Calibration Procedure",
-						   "Welcome to the calibration procedure.\nPlease pick 3 calibration points from the 3D model!");
+						   "Welcome to the calibration procedure.\nPlease pick 6 calibration points from the 3D model!");
 }
 
 

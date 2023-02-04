@@ -72,9 +72,7 @@ class CTDataset {
   /// Traverses all points in the region and computes the average of their coordinates
   Status FindPointCloudCenter();
 
-  /// Computes rigid transformation matrix for transformation from source to target
-  static Eigen::Isometry3d EstimateRigidTransformation3D(const std::vector<Eigen::Vector3d> &source_points,
-														 const std::vector<Eigen::Vector3d> &target_points);
+
 
  private:
   /// Height of the provided CT image (in pixels)

@@ -4,6 +4,7 @@
 #include "MyLib_global.h"
 #include "status.h"
 #include "Eigen/Core"
+#include "Eigen/Geometry"
 
 #include <QDebug>
 
@@ -14,6 +15,10 @@ class MYLIB_EXPORT MyLib {
   MyLib() = default;
 
   static void FindNeighbors3D(const Eigen::Vector3i &pt, std::vector<Eigen::Vector3i> &neighbors);
+
+  /// Computes rigid transformation matrix for transformation from source to target
+  static Eigen::Isometry3d EstimateRigidTransformation3D(const std::vector<Eigen::Vector3d> &source_points,
+														 const std::vector<Eigen::Vector3d> &target_points);
 };
 
 namespace utils {

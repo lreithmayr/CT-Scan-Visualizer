@@ -38,17 +38,17 @@ class Widget : public QWidget {
   void ShowLabelNextToCursor(const QPoint &cursor_global_pos, const QPoint &cursor_local_pos);
   void DrawCircleAtCursor(const QPoint &cursor_local_pos, Qt::GlobalColor const &color);
   void PickCalibrationPoints();
-  void RunTransformationProcedure();
+  void CalculateTransformationMatrix();
+  void TransformSelectedAreas();
 
  private:
   Ui::Widget *ui;
   CTDataset m_ctimage;
   QImage m_qImage;
   QImage m_qImage_2d;
-  bool m_render3dClicked{false};
-  bool m_depthBufferIsRendered{false};
-  bool m_regionGrowingIsRendered{false};
   Eigen::Matrix3d m_rotationMat;
+  QLabel *m_labelAtCursor;
+
   QPoint m_currentMousePos;
   QPoint m_currentMouseGlobalPos;
   QPoint m_currentMousePos2Dslice;
@@ -56,16 +56,25 @@ class Widget : public QWidget {
   int m_currentDepthAtCursor{0};
   Eigen::Vector3i m_currentSeed;
   bool m_seedPicked{false};
-  QLabel *m_labelAtCursor;
+
   Eigen::Vector4i m_targetArea;
   Eigen::Vector4i m_safeArea;
+  Eigen::Vector3d m_transformedTargetArea;
+  Eigen::Vector3d m_transformedSafeArea;
+
+  std::vector<Eigen::Vector3d> m_calibPoints;
+  Eigen::Isometry3d m_transformationMatrix;
+
+  bool m_render3dClicked{false};
+  bool m_depthBufferIsRendered{false};
+  bool m_regionGrowingIsRendered{false};
   bool m_selectTargetArea{false};
   bool m_selectSafeArea{false};
   bool m_targetAreaHasBeenDrawn{false};
   bool m_safeAreaHasBeenDrawn{false};
   bool m_calibrationStarted{false};
   bool m_calibrationOccured{false};
-  std::vector<Eigen::Vector3d> m_calibPoints;
+
 
  private slots:
   void LoadImage3D();
