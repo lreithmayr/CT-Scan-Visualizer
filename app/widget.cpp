@@ -357,7 +357,6 @@ void Widget::mousePressEvent(QMouseEvent *event) {
 	  }
 	  if (event->button() == Qt::RightButton) {
 		m_currentMousePos = global_pos;
-		qDebug() << "RMB clicked at: " << m_currentMousePos << "\n";
 	  }
 	}
 	if (ui->label_imgArea->rect().contains(local_pos_2Dslice)) {
@@ -437,7 +436,6 @@ void Widget::mouseReleaseEvent(QMouseEvent *event) {
   if (ui->label_image3D->rect().contains(local_pos)) {
 	if (event->button() == Qt::RightButton) {
 	  m_currentMousePos = local_pos;
-	  qDebug() << "RMB released at: " << m_currentMousePos << "\n";
 	}
   }
 

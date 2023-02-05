@@ -338,7 +338,7 @@ Status CTDataset::FindPointCloudCenter() {
  */
 void CTDataset::RegionGrowing3D(Eigen::Vector3i &seed, int threshold) {
   std::fill_n(m_regionBuffer, m_imgHeight * m_imgWidth * m_imgLayers, 0);
-  qDebug() << "Starting region growing algorithm!" << "\n";
+  std::cout << "Starting region growing algorithm!" << "\n";
   auto t1 = std::chrono::high_resolution_clock::now();
 
   std::stack<Eigen::Vector3i> stack;
@@ -368,15 +368,15 @@ void CTDataset::RegionGrowing3D(Eigen::Vector3i &seed, int threshold) {
   }
   auto t2 = std::chrono::high_resolution_clock::now();
   auto duration_ms = std::chrono::duration<double, std::milli>(t2 - t1);
-  qDebug() << "Region growing took: " << duration_ms.count() << "ms\n";
+  std::cout << "Region growing took: " << duration_ms.count() << "ms\n";
 
   if (FindSurfacePoints().Ok()) {
-	qDebug() << m_surfacePoints.size() << " surface points calculated!" << "\n";
+	std::cout << m_surfacePoints.size() << " surface points calculated!" << "\n";
   }
   if (FindPointCloudCenter().Ok()) {
-	qDebug() << m_allPointsInRegion.size() << " total points in the region!" << "\n";
-	qDebug() << "Centroid: " << m_regionVolumeCenter.x() << m_regionVolumeCenter.y() << m_regionVolumeCenter.z()
-			 << "\n";
+	std::cout << m_allPointsInRegion.size() << " total points in the region!" << "\n";
+	std::cout << "Centroid: " << m_regionVolumeCenter.x() << m_regionVolumeCenter.y() << m_regionVolumeCenter.z()
+			  << "\n";
   }
 }
 
