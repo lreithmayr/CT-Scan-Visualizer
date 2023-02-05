@@ -20,6 +20,7 @@ class MYLIB_EXPORT MyLib {
   /// Computes maximum of 6 neighbors for a given point
   static void FindNeighbors3D(Eigen::Vector3i const &pt, std::vector<Eigen::Vector3i> &neighbors);
 
+  /// Finds surface points of a point cloud region
   static bool IsSurfacePoint(const int *buf, Eigen::Vector3i const &point, int width, int height);
 
   /// Computes rigid transformation matrix for transformation from source to target

@@ -179,7 +179,7 @@ Status CTDataset::CalculateDepthBufferFromRegionGrowing(Eigen::Matrix3d const &r
   for (auto &point : m_surfacePoints) {
 	pt_rot = (rotation_mat * (point.cast<double>() - m_regionVolumeCenter)) + m_regionVolumeCenter;
 	auto pt_rot_int = pt_rot.cast<int>();
-	if (m_depthBuffer[pt_rot_int.x() + (pt_rot_int.y() * m_imgWidth)] >= pt_rot_int.z()
+	if (pt_rot_int.z() <= m_depthBuffer[pt_rot_int.x() + (pt_rot_int.y() * m_imgWidth)]
 	  && (pt_rot_int.x() >= 0 && pt_rot_int.x() < m_imgWidth)
 	  && (pt_rot_int.y() >= 0 && pt_rot_int.y() < m_imgHeight)) {
 	  m_depthBuffer[pt_rot_int.x() + (pt_rot_int.y() * m_imgWidth)]

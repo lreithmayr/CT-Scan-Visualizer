@@ -10,6 +10,15 @@ void MyLib::FindNeighbors3D(const Eigen::Vector3i &pt, std::vector<Eigen::Vector
   neighbors.emplace_back(pt.x(), pt.y(), pt.z() + 1);
 }
 
+bool MyLib::IsSurfacePoint(const int *buf, Eigen::Vector3i const &point, int width, int height) {
+  return (!(buf[(point.x() - 1) + point.y() * width + (height * width * point.z())] == 1
+	&& buf[(point.x() + 1) + point.y() * width + (height * width * point.z())] == 1
+	&& buf[point.x() + (point.y() - 1) * width + (height * width * point.z())] == 1
+	&& buf[point.x() + (point.y() + 1) * width + (height * width * point.z())] == 1
+	&& buf[point.x() + point.y() * width + (height * width * (point.z() - 1))] == 1
+	&& buf[point.x() + point.y() * width + (height * width * (point.z() + 1))] == 1));
+}
+
 Eigen::Isometry3d MyLib::EstimateRigidTransformation3D(std::vector<Eigen::Vector3d> const &source_points,
 													   std::vector<Eigen::Vector3d> const &target_points) {
   typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> MatrixXd;
@@ -53,13 +62,4 @@ Eigen::Isometry3d MyLib::EstimateRigidTransformation3D(std::vector<Eigen::Vector
 
   // Return as Isometry3d
   return Eigen::Isometry3d(transformation_mat);
-}
-
-bool MyLib::IsSurfacePoint(const int *buf, Eigen::Vector3i const &point, int width, int height) {
-  return (!(buf[(point.x() - 1) + point.y() * width + (height * width * point.z())] == 1
-	&& buf[(point.x() + 1) + point.y() * width + (height * width * point.z())] == 1
-	&& buf[point.x() + (point.y() - 1) * width + (height * width * point.z())] == 1
-	&& buf[point.x() + (point.y() + 1) * width + (height * width * point.z())] == 1
-	&& buf[point.x() + point.y() * width + (height * width * (point.z() - 1))] == 1
-	&& buf[point.x() + point.y() * width + (height * width * (point.z() + 1))] == 1));
 }
