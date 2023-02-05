@@ -363,18 +363,18 @@ void CTDataset::RegionGrowing3D(Eigen::Vector3i &seed, int const threshold) {
 	  seed = stack.top();
 	}
   }
-  auto t2 = std::chrono::high_resolution_clock::now();
-  auto duration_ms = std::chrono::duration<double, std::milli>(t2 - t1);
-  std::cout << "Region growing took: " << duration_ms.count() << "ms\n";
 
   if (FindSurfacePoints().Ok()) {
 	std::cout << m_surfacePoints.size() << " surface points calculated!" << "\n";
   }
   if (FindPointCloudCenter().Ok()) {
 	std::cout << m_allPointsInRegion.size() << " total points in the region!" << "\n";
-	std::cout << "Centroid: " << m_regionVolumeCenter.x() << m_regionVolumeCenter.y() << m_regionVolumeCenter.z()
-			  << "\n";
   }
+
+  auto t2 = std::chrono::high_resolution_clock::now();
+  auto duration_ms = std::chrono::duration<double, std::milli>(t2 - t1);
+  std::cout << "Region growing, surface point search and barycenter computation took: " << duration_ms.count()
+			<< "ms\n";
 }
 
 void CTDataset::AggregatePointsInRegion() {
