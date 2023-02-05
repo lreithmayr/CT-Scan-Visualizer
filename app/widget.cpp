@@ -10,7 +10,7 @@ Widget::Widget(QWidget *parent)
 	m_qImage_2d(QImage(512, 512, QImage::Format_RGB32)),
 	m_qImage(QImage(512, 512, QImage::Format_RGB32)) {
   // Initialize rotation matrix
-  -m_rotationMat.setIdentity();
+  m_rotationMat.setIdentity();
 
   // Housekeeping
   ui->setupUi(this);
@@ -100,35 +100,6 @@ void Widget::Update2DSlice() {
   }
 
   ui->label_imgArea->setPixmap(QPixmap::fromImage(m_qImage_2d));
-}
-
-void Widget::Update2DSliceFromCursor(int depth, int cursor_x, int cursor_y) {
-  int threshold = ui->horizontalSlider_threshold->value();
-  int center = ui->horizontalSlider_center->value();
-  int window_size = ui->horizontalSlider_windowSize->value();
-
-  for (int y = 0; y < m_qImage.height(); ++y) {
-	for (int x = 0; x < m_qImage.width(); ++x) {
-	  int raw_value =
-		m_ctimage.Data()[(x + y * m_qImage.width()) +
-		  (m_qImage.height() * m_qImage.width() * depth)];
-	  if (raw_value > threshold) {
-		m_qImage.setPixel(x, y, qRgb(255, 0, 0));
-		continue;
-	  }
-	  if (CTDataset::WindowInputValue(raw_value, center, window_size).Ok()) {
-		int windowed_value =
-		  CTDataset::WindowInputValue(raw_value, center, window_size).value();
-		m_qImage.setPixel(x, y,
-						  qRgb(windowed_value, windowed_value, windowed_value));
-	  }
-	}
-  }
-  QPainter painter(&m_qImage);
-  painter.setPen(Qt::green);
-  painter.drawText(cursor_x, cursor_y, "X");
-
-  ui->label_imgArea->setPixmap(QPixmap::fromImage(m_qImage));
 }
 
 void Widget::Update3DRender() {
