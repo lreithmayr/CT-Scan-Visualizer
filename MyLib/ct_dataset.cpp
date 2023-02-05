@@ -271,25 +271,23 @@ Status CTDataset::FindSurfacePoints() {
 	return Status(StatusCode::BUFFER_EMPTY);
   }
   m_surfacePoints.clear();
+  Eigen::Vector3i surface_point(0, 0, 0);
+  Eigen::Vector3i point(0, 0, 0);
 
   for (int y = 0; y < m_imgHeight; ++y) {
 	for (int x = 0; x < m_imgWidth; ++x) {
 	  for (int d = 0; d < m_imgLayers; ++d) {
-		int pt = x + y * m_imgWidth + (m_imgHeight * m_imgWidth * d);
-		if (m_regionBuffer[pt] == 1) {
-		  if (m_regionBuffer[(x - 1) + y * m_imgWidth + (m_imgHeight * m_imgWidth * d)] == 1
-			&& m_regionBuffer[(x + 1) + y * m_imgWidth + (m_imgHeight * m_imgWidth * d)] == 1
-			&& m_regionBuffer[x + (y - 1) * m_imgWidth + (m_imgHeight * m_imgWidth * d)] == 1
-			&& m_regionBuffer[x + (y + 1) * m_imgWidth + (m_imgHeight * m_imgWidth * d)] == 1
-			&& m_regionBuffer[x + y * m_imgWidth + (m_imgHeight * m_imgWidth * (d - 1))] == 1
-			&& m_regionBuffer[x + y * m_imgWidth + (m_imgHeight * m_imgWidth * (d + 1))] == 1) {
-			continue;
+		int current_pos = x + y * m_imgWidth + (m_imgHeight * m_imgWidth * d);
+		point.x() = x;
+		point.y() = y;
+		point.z() = d;
+		if (m_regionBuffer[current_pos] == 1) {
+		  if (MyLib::IsSurfacePoint(m_regionBuffer, point, m_imgWidth, m_imgHeight)) {
+			surface_point.x() = x;
+			surface_point.y() = y;
+			surface_point.z() = d;
+			m_surfacePoints.push_back(surface_point);
 		  }
-		  Eigen::Vector3i surface_point;
-		  surface_point.x() = x;
-		  surface_point.y() = y;
-		  surface_point.z() = d;
-		  m_surfacePoints.push_back(surface_point);
 		}
 	  }
 	}

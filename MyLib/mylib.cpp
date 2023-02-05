@@ -54,3 +54,12 @@ Eigen::Isometry3d MyLib::EstimateRigidTransformation3D(std::vector<Eigen::Vector
   // Return as Isometry3d
   return Eigen::Isometry3d(transformation_mat);
 }
+
+bool MyLib::IsSurfacePoint(const int *buf, Eigen::Vector3i const &point, int width, int height) {
+  return (!(buf[(point.x() - 1) + point.y() * width + (height * width * point.z())] == 1
+	&& buf[(point.x() + 1) + point.y() * width + (height * width * point.z())] == 1
+	&& buf[point.x() + (point.y() - 1) * width + (height * width * point.z())] == 1
+	&& buf[point.x() + (point.y() + 1) * width + (height * width * point.z())] == 1
+	&& buf[point.x() + point.y() * width + (height * width * (point.z() - 1))] == 1
+	&& buf[point.x() + point.y() * width + (height * width * (point.z() + 1))] == 1));
+}
