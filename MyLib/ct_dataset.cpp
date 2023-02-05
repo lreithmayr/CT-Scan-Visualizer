@@ -179,13 +179,16 @@ Status CTDataset::CalculateDepthBufferFromRegionGrowing(Eigen::Matrix3d &rotatio
   for (auto &point : m_surfacePoints) {
 	pt_rot = (rotation_mat * (point.cast<double>() - m_regionVolumeCenter)) + m_regionVolumeCenter;
 	auto pt_rot_int = pt_rot.cast<int>();
-	if ((pt_rot_int.x() >= 0 && pt_rot_int.x() < m_imgWidth) && (pt_rot_int.y() >= 0 && pt_rot_int.y() < m_imgHeight)) {
-	  m_depthBuffer[pt_rot_int.x() + (pt_rot_int.y() * m_imgWidth)]
-		= m_depthBuffer[(pt_rot_int.x() - 1) + pt_rot_int.y() * m_imgWidth]
-		= m_depthBuffer[(pt_rot_int.x() + 1) + pt_rot_int.y() * m_imgWidth]
-		= m_depthBuffer[pt_rot_int.x() + (pt_rot_int.y() - 1) * m_imgWidth]
-		= m_depthBuffer[pt_rot_int.x() + (pt_rot_int.y() + 1) * m_imgWidth]
-		= pt_rot_int.z();
+	if (m_depthBuffer[pt_rot_int.x() + (pt_rot_int.y() * m_imgWidth)] > pt_rot_int.z()) {
+	  if ((pt_rot_int.x() >= 0 && pt_rot_int.x() < m_imgWidth)
+		&& (pt_rot_int.y() >= 0 && pt_rot_int.y() < m_imgHeight)) {
+		m_depthBuffer[pt_rot_int.x() + (pt_rot_int.y() * m_imgWidth)]
+		  = m_depthBuffer[(pt_rot_int.x() - 1) + pt_rot_int.y() * m_imgWidth]
+		  = m_depthBuffer[(pt_rot_int.x() + 1) + pt_rot_int.y() * m_imgWidth]
+		  = m_depthBuffer[pt_rot_int.x() + (pt_rot_int.y() - 1) * m_imgWidth]
+		  = m_depthBuffer[pt_rot_int.x() + (pt_rot_int.y() + 1) * m_imgWidth]
+		  = pt_rot_int.z();
+	  }
 	}
   }
 
