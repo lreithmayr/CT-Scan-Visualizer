@@ -1,0 +1,1 @@
+Hinweis, falls Performance sehr schlecht ist: Bitte "Clean All" und danach erneut builden (in Release natürlich). Da scheinen sich beim initialen Build im Debug-Modus irgendwelche Artefakte nur mit einem Clean-Build zu löschen.
