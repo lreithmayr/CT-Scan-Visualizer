@@ -94,14 +94,19 @@ class CTDataset {
   /// Buffer for the region growing image
   int *m_regionBuffer;
 
+  /// Buffer for visited points during RG
   int *m_visitedBuffer;
 
+  /// Surface points of the region determined by RG
   std::vector<Eigen::Vector3i> m_surfacePoints;
 
+  /// All points fo the region growing region
   std::vector<Eigen::Vector3i> m_allPointsInRegion;
 
+  /// All points with rendered elements
   std::vector<Eigen::Vector3i> m_allRenderedPoints;
 
+  /// Barycentric coordinates of the point cloud produced by region growing
   Eigen::Vector3d m_regionVolumeCenter;
 };
 
