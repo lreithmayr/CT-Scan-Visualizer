@@ -1,24 +1,24 @@
 Zielbereich:
-	X [px]: 220
-	Y [px]: 268
-	Z [px]: 162
-	Radius [px]: 19
+	X [px]: 199
+	Y [px]: 261
+	Z [px]: 181
+	Radius [px]: 17
 
 Schonbereich:
-	X [px]: 294
-	Y [px]: 254
-	Z [px]: 162
-	Radius [px]: 51
+	X [px]: 286
+	Y [px]: 240
+	Z [px]: 181
+	Radius [px]: 59
 
 Zielbereich transformiert:
-	X [px]: 1007
-	Y [px]: -775.12
-	Z [px]: 1219.58
-	Radius [px]: 19
+	X [px]: 986.846
+	Y [px]: -569.998
+	Z [px]: 1779.14
+	Radius [px]: 17
 
 Schonbereich transformiert:
-	X [px]: 1071.78
-	Y [px]: -736.731
-	Z [px]: 1221.13
-	Radius [px]: 51
+	X [px]: 943.181
+	Y [px]: -568.086
+	Z [px]: 1857.24
+	Radius [px]: 59
 

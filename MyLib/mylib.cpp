@@ -10,8 +10,8 @@ void MyLib::FindNeighbors3D(const Eigen::Vector3i &pt, std::vector<Eigen::Vector
   neighbors.emplace_back(pt.x(), pt.y(), pt.z() + 1);
 }
 
-Eigen::Isometry3d MyLib::EstimateRigidTransformation3D(const std::vector<Eigen::Vector3d> &source_points,
-														   const std::vector<Eigen::Vector3d> &target_points) {
+Eigen::Isometry3d MyLib::EstimateRigidTransformation3D(std::vector<Eigen::Vector3d> const &source_points,
+													   std::vector<Eigen::Vector3d> const &target_points) {
   typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> MatrixXd;
 
   assert(source_points.size() == target_points.size());

@@ -11,18 +11,20 @@
 #include <iostream>
 
 // Global Eigen::IOFormat definition for debugging purposes
-// FIXME: Remove this when done debugging!
 Eigen::IOFormat const CleanFmt(4, 0, ", ", "\n", "[", "]");
 
 class MYLIB_EXPORT MyLib {
  public:
   MyLib() = default;
 
-  static void FindNeighbors3D(const Eigen::Vector3i &pt, std::vector<Eigen::Vector3i> &neighbors);
+  /// Computes maximum of 6 neighbors for a given point
+  static void FindNeighbors3D(Eigen::Vector3i const &pt, std::vector<Eigen::Vector3i> &neighbors);
+
+  static bool IsSurfacePoint(const int *buf, Eigen::Vector3i const &point, int width, int height);
 
   /// Computes rigid transformation matrix for transformation from source to target
-  static Eigen::Isometry3d EstimateRigidTransformation3D(const std::vector<Eigen::Vector3d> &source_points,
-														 const std::vector<Eigen::Vector3d> &target_points);
+  static Eigen::Isometry3d EstimateRigidTransformation3D(std::vector<Eigen::Vector3d> const &source_points,
+														 std::vector<Eigen::Vector3d> const &target_points);
 };
 
 namespace utils {

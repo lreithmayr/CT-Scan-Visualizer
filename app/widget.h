@@ -35,8 +35,8 @@ class Widget : public QWidget {
   void Update3DRender();
   void UpdateRotationMatrix(QPoint const &position_delta);
   void RenderRegionGrowing();
-  void ShowLabelNextToCursor(const QPoint &cursor_global_pos, const QPoint &cursor_local_pos);
-  void DrawCircleAtCursor(const QPoint &cursor_local_pos, Qt::GlobalColor const &color);
+  void ShowLabelNextToCursor(QPoint const &cursor_global_pos, QPoint const &cursor_local_pos);
+  void DrawCircleAtCursor(QPoint const &cursor_local_pos, Qt::GlobalColor const &color);
   void PickCalibrationPoints();
   void CalculateTransformationMatrix();
   void TransformSelectedAreas();
@@ -75,13 +75,12 @@ class Widget : public QWidget {
   bool m_calibrationStarted{false};
   bool m_calibrationOccured{false};
 
-
  private slots:
   void LoadImage3D();
-  void UpdateWindowingCenter(const int val);
-  void UpdateWindowingWindowSize(const int val);
-  void UpdateDepthValue(const int val);
-  void UpdateThresholdValue(const int val);
+  void UpdateWindowingCenter(int const val);
+  void UpdateWindowingWindowSize(int const val);
+  void UpdateDepthValue(int const val);
+  void UpdateThresholdValue(int const val);
   void Render3D();
   void mousePressEvent(QMouseEvent *event) override;
   void mouseMoveEvent(QMouseEvent *event) override;

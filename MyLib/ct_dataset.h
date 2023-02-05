@@ -46,22 +46,22 @@ class CTDataset {
   void CalculateAllRenderedPoints();
 
   /// Normalize pixel values to a pre-defined grey-value range
-  static StatusOr<int> WindowInputValue(const int &input_value, const int &center, const int &window_size);
+  static StatusOr<int> WindowInputValue(const int input_value, const int center, const int window_size);
 
   /// Calculate the depth value for each pixel in the CT image
-  Status CalculateDepthBuffer(int threshold);
+  Status CalculateDepthBuffer(int const threshold);
 
   /// Calculate the depth value for each pixel in the region determined by region growing
-  Status CalculateDepthBufferFromRegionGrowing(Eigen::Matrix3d &rotation_mat);
+  Status CalculateDepthBufferFromRegionGrowing(Eigen::Matrix3d const &rotation_mat);
 
   /// Render a shaded 3D image from the depth buffer
   Status RenderDepthBuffer();
 
   /// Extract HU value from a 3D point specified as a vector
-  [[nodiscard]] int GetGreyValue(const Eigen::Vector3i &pt) const;
+  [[nodiscard]] int GetGreyValue(Eigen::Vector3i const &pt) const;
 
   /// 3D region growing algorithm
-  void RegionGrowing3D(Eigen::Vector3i &seed, int threshold);
+  void RegionGrowing3D(Eigen::Vector3i &seed, int const threshold);
 
   /// Saves all points from the region growing algorithm in a member vector
   void AggregatePointsInRegion();
@@ -71,8 +71,6 @@ class CTDataset {
 
   /// Traverses all points in the region and computes the average of their coordinates
   Status FindPointCloudCenter();
-
-
 
  private:
   /// Height of the provided CT image (in pixels)
@@ -106,6 +104,5 @@ class CTDataset {
 
   Eigen::Vector3d m_regionVolumeCenter;
 };
-
 
 #endif  // CT_DATASET_H

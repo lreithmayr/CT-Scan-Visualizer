@@ -101,7 +101,7 @@ void CTDataset::CalculateAllRenderedPoints() {
  * window sizes. If
  * no error occured, the windowed HU value cast to an integer will be returned
  */
-StatusOr<int> CTDataset::WindowInputValue(const int &input_value, const int &center, const int &window_size) {
+StatusOr<int> CTDataset::WindowInputValue(int const input_value, int const center, int const window_size) {
   if ((input_value < -1024) || (input_value > 3071)) {
 	return StatusOr<int>(Status(StatusCode::HU_OUT_OF_RANGE));
   }
@@ -135,7 +135,7 @@ StatusOr<int> CTDataset::WindowInputValue(const int &input_value, const int &cen
  * @param threshold Pixel grey value (HU value) above which the depth value will be buffered.
  * @return StatusCode::OK if the result buffer is not empty, else StatusCode::BUFFER_EMPTY
  */
-Status CTDataset::CalculateDepthBuffer(int threshold) {
+Status CTDataset::CalculateDepthBuffer(int const threshold) {
   std::fill_n(m_depthBuffer, m_imgWidth * m_imgHeight, m_imgLayers - 1);
   m_allRenderedPoints.clear();
   Eigen::Vector3i rendered_point(0, 0, 0);
@@ -167,7 +167,7 @@ Status CTDataset::CalculateDepthBuffer(int threshold) {
  * @param rotation_mat Rotation matrix determined from the mouse position delta.
  * @return StatusCode::OK if the result buffer is not empty, else StatusCode::BUFFER_EMPTY
  */
-Status CTDataset::CalculateDepthBufferFromRegionGrowing(Eigen::Matrix3d &rotation_mat) {
+Status CTDataset::CalculateDepthBufferFromRegionGrowing(Eigen::Matrix3d const &rotation_mat) {
   std::fill_n(m_depthBuffer, m_imgWidth * m_imgHeight, m_imgLayers - 1);
 
   if (m_surfacePoints.empty()) {
@@ -258,7 +258,7 @@ Status CTDataset::RenderDepthBuffer() {
   return Status(StatusCode::OK);
 }
 
-int CTDataset::GetGreyValue(const Eigen::Vector3i &pt) const {
+int CTDataset::GetGreyValue(Eigen::Vector3i const &pt) const {
   return m_imgData[(pt.x() + pt.y() * m_imgWidth) + (m_imgHeight * m_imgWidth * pt.z())];
 }
 
@@ -336,7 +336,7 @@ Status CTDataset::FindPointCloudCenter() {
  * @param seed User-picked initial seed point of the algorithm
  * @param threshold HU value above which points will be added to the region
  */
-void CTDataset::RegionGrowing3D(Eigen::Vector3i &seed, int threshold) {
+void CTDataset::RegionGrowing3D(Eigen::Vector3i &seed, int const threshold) {
   std::fill_n(m_regionBuffer, m_imgHeight * m_imgWidth * m_imgLayers, 0);
   std::cout << "Starting region growing algorithm!" << "\n";
   auto t1 = std::chrono::high_resolution_clock::now();

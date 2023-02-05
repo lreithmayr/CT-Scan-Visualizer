@@ -169,7 +169,7 @@ void Widget::RenderRegionGrowing() {
   ui->label_image3D->setPixmap(QPixmap::fromImage(m_qImage));
 }
 
-void Widget::ShowLabelNextToCursor(const QPoint &cursor_global_pos, const QPoint &cursor_local_pos) {
+void Widget::ShowLabelNextToCursor(QPoint const &cursor_global_pos, QPoint const &cursor_local_pos) {
   m_labelAtCursor->show();
   m_labelAtCursor->move(cursor_global_pos + QPoint(-50, 40));
   m_labelAtCursor->setText(QString("(X: %1 | Y: %2 | Z: %3)")
@@ -178,7 +178,7 @@ void Widget::ShowLabelNextToCursor(const QPoint &cursor_global_pos, const QPoint
   m_labelAtCursor->raise();
 }
 
-void Widget::DrawCircleAtCursor(const QPoint &cursor_local_pos, Qt::GlobalColor const &color) {
+void Widget::DrawCircleAtCursor(QPoint const &cursor_local_pos, Qt::GlobalColor const &color) {
   QPainter painter(&m_qImage_2d);
   painter.setPen(color);
 
@@ -296,22 +296,22 @@ void Widget::LoadImage3D() {
   Update2DSlice();
 }
 
-void Widget::UpdateWindowingCenter(const int val) {
+void Widget::UpdateWindowingCenter(int const val) {
   ui->label_sliderCenter->setText("Center: " + QString::number(val));
   Update2DSlice();
 }
 
-void Widget::UpdateWindowingWindowSize(const int val) {
+void Widget::UpdateWindowingWindowSize(int const val) {
   ui->label_sliderWSize->setText("Window Size: " + QString::number(val));
   Update2DSlice();
 }
 
-void Widget::UpdateDepthValue(const int val) {
+void Widget::UpdateDepthValue(int const val) {
   ui->label_currentDepth->setText("Depth: " + QString::number(val));
   Update2DSlice();
 }
 
-void Widget::UpdateThresholdValue(const int val) {
+void Widget::UpdateThresholdValue(int const val) {
   ui->label_sliderThreshold->setText("Threshold: " + QString::number(val));
   Update2DSlice();
   if (m_render3dClicked) {
