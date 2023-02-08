@@ -24,7 +24,7 @@ CTDataset::~CTDataset() {
  * @param img_path The file path of the CT image.
  * @return StatusCode::OK if loading was succesfull, else StatusCode::FOPEN_ERROR.
  */
-Status CTDataset::load(QString &img_path) {
+Status MYLIB_EXPORT CTDataset::load(QString &img_path) {
   QFile img_file(img_path);
   bool fopen = img_file.open(QIODevice::ReadOnly);
   if (!fopen) {

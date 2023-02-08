@@ -22,7 +22,7 @@
  * rendering 3D representations of the image data.
  */
 
-class CTDataset {
+class MYLIB_EXPORT CTDataset {
  public:
   CTDataset();
   ~CTDataset();

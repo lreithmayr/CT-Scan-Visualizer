@@ -59,6 +59,7 @@ Widget::Widget(QWidget *parent)
 }
 
 Widget::~Widget() {
+  delete m_labelAtCursor;
   delete ui;
 }
 
@@ -356,11 +357,11 @@ void Widget::mouseMoveEvent(QMouseEvent *event) {
 	int cursor_y_px_3Dimg = local_pos_3Dimg.y();
 	double cursor_y_mm_3Dimg = cursor_y_px_3Dimg * 0.523; // Pixel y position * Voxel length in y
 
-	int depth_at_cursor = m_ctimage.GetDepthBuffer()[local_pos_3Dimg.x() + local_pos_3Dimg.y() * m_qImage.width()];
-	m_currentDepthAtCursor = depth_at_cursor;
-	auto depth_mm = depth_at_cursor * 0.7; // Depth value * Voxel height
-
 	if (ui->label_image3D->rect().contains(local_pos_3Dimg)) {
+	  int depth_at_cursor = m_ctimage.GetDepthBuffer()[local_pos_3Dimg.x() + local_pos_3Dimg.y() * m_qImage.width()];
+	  // auto depth_at_cursor = 0;
+	  m_currentDepthAtCursor = depth_at_cursor;
+	  auto depth_mm = depth_at_cursor * 0.7; // Depth value * Voxel height
 	  m_currentMousePos3DImage = local_pos_3Dimg;
 	  ui->label_xPos->setText("X [px]: " + QString::number(cursor_x_px_3Dimg));
 	  ui->label_xPos_mm->setText("X [mm]: " + QString::number(cursor_x_mm_3Dimg));
